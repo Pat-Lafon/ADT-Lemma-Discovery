@@ -6,5 +6,4 @@ log.txt
 *.out
 tmp*
 comparision/*
-dune-project
 _build/
