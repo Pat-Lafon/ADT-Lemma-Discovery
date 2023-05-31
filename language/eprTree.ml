@@ -14,6 +14,8 @@ module type EprTree = sig
   val layout: t -> string
   val layout_forallformula: forallformula -> string
   val pretty_layout_forallformula: forallformula -> string
+
+  val refinement_layout_forallformula: forallformula -> (Tp.Tp.t * string) list -> (Tp.Tp.t * forallformula) option -> string
   val substm: SE.t Utils.StrMap.t -> t -> t
   val subst: t -> string list -> SE.t list -> t
   val subst_forallformula: forallformula -> string list -> SE.t list -> forallformula
@@ -108,9 +110,64 @@ module EprTree(SE: SimpleExpr.SimpleExpr) : EprTree
     in
     aux indent e
 
+  let refinement_layout indent e =
+    let mk_indent indent = String.init indent (fun _ -> ' ') in
+    let rec aux indent = function
+      | True -> "true"
+      | Atom bexpr -> sprintf "%s%s" (mk_indent indent) (SE.layout bexpr)
+      | Implies (Atom e1, Atom e2) ->
+        sprintf "%s(%s %s %s)"
+          (mk_indent indent) "implies" (aux 0 (Atom e1)) (aux 0 (Atom e2))
+      | Implies (p1, p2) ->
+        sprintf "%s(\n%s %s \n%s\n%s)"
+          (mk_indent indent) "implies" (aux (indent + 1) p1)
+          (aux (indent + 1) p2) (mk_indent indent)
+      | And [] -> raise @@ InterExn "epr does not involve void conj"
+      | And [p] -> aux indent p
+      | And [Atom e1; Atom e2] ->
+        sprintf "%s(%s %s %s)" (mk_indent indent) (aux 0 (Atom e1)) sym_and (aux 0 (Atom e2))
+      | And [Atom e1; Atom e2; Atom e3] ->
+        sprintf "%s(%s %s %s %s %s)"
+          (mk_indent indent) (aux 0 (Atom e1)) sym_and
+          (aux 0 (Atom e2)) sym_and (aux 0 (Atom e3))
+      | And ps -> sprintf "%s(\n%s\n%s)" (mk_indent indent)
+                    (List.inner_layout (List.map (aux (indent + 1)) ps) (" "^sym_and^"\n") "true")
+                    (mk_indent indent)
+      | Or [] -> raise @@ InterExn "epr does not involve void disconj"
+      | Or [p] -> aux indent p
+      | Or [Atom e1; Atom e2] ->
+        sprintf "%s(%s %s %s)" (mk_indent indent)(aux 0 (Atom e1)) sym_or (aux 0 (Atom e2))
+      | Or [Atom e1; Atom e2; Atom e3] ->
+        sprintf "%s(%s %s %s %s %s)"
+          (mk_indent indent) (aux 0 (Atom e1))
+          sym_or (aux 0 (Atom e2)) sym_or (aux 0 (Atom e3))
+      | Or ps -> sprintf "%s(\n%s\n%s)" (mk_indent indent)
+                   (List.inner_layout (List.map (aux (indent + 1)) ps) (" "^sym_or^"\n") "false")
+                   (mk_indent indent)
+      | Not p -> sprintf "%s%s%s" "not" (mk_indent indent) (aux 0 p)
+      | Iff (p1, p2) ->
+        sprintf "%s(%s %s \n%s)"
+          (mk_indent indent) "iff" (aux 0 p1) (aux (indent + 1) p2)
+      | Ite (p1, p2, p3) ->
+        sprintf "%s(ite%s\n%s\n%s)"
+          (mk_indent indent) (aux 1 p1) (aux (indent + 4) p2) (aux (indent + 4) p3)
+    in
+    aux indent e
+
   let pretty_layout_forallformula (forallvars, body) =
     if (List.length forallvars) == 0 then layout body else
       sprintf "forall %s,%s" (List.inner_layout forallvars " " "") (pretty_layout 0 body)
+
+  let refinement_layout_forallformula (forallvars, body) outptps (axiom: (Tp.Tp.t * forallformula) option) =
+    let (forallvars, body) = match axiom with
+    | None -> (forallvars, body)
+    | Some (_, (f, b)) -> (List.append forallvars f, (And [body; b]))
+    in
+    (* Assume only up to one return value *)
+    (match (outptps) with
+    | [] -> ""
+    | (t, n)::_ -> "(" ^ n ^ ":"^ Tp.Tp.layout t ^") " ) ^
+    sprintf "(%s\n%s)" (List.to_string (fun s -> "fun ("^s ^":'fa) ->") forallvars " ") (refinement_layout 4 body)
 
   let layout_forallformula (forallvars, body) =
     if (List.length forallvars) == 0 then layout body else

@@ -83,8 +83,8 @@ module List = struct
     | [] -> false
     | h :: _ -> h == e
 
-  let to_string f l =
-    fold_lefti (fun res i a -> if i == 0 then res ^ (f a) else res ^ "," ^ (f a)) "" l
+  let to_string f l sep =
+    fold_lefti (fun res i a -> if i == 0 then res ^ (f a) else res ^ sep ^ (f a)) "" l
 
   let rec element_unique f l e =
     match l with

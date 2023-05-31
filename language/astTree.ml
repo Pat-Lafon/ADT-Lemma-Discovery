@@ -1,5 +1,6 @@
 module type AstTree = sig
   module E: Epr.Epr
+  module T = Tp.Tp
   type t =
     | ForAll of E.forallformula
     | Implies of t * t
@@ -9,11 +10,12 @@ module type AstTree = sig
     | Or of t list
     | Iff of t * t
     | SpecApply of string * E.SE.t list
-  type spec = (string list) * E.forallformula
+  type spec = (string list) * E.forallformula * (T.t * string) list * (T.t * string) list
   val layout: t -> string
   val vc_layout: t -> string
   val layout_spec: spec -> string
   val layout_spec_entry: string -> spec -> string
+  val layout_spec_entry_refinement_type : string -> spec -> (T.t * E.forallformula) option -> string
   val eq: t -> t -> bool
 end
 
@@ -23,6 +25,7 @@ module AstTree (E: Epr.Epr) : AstTree
   with type E.SE.t = E.SE.t
   with type E.t = E.t = struct
   module E = E
+  module T = Tp.Tp
   open Utils
   open Printf
   type t =
@@ -34,7 +37,7 @@ module AstTree (E: Epr.Epr) : AstTree
     | Or of t list
     | Iff of t * t
     | SpecApply of string * E.SE.t list
-  type spec = (string list) * E.forallformula
+  type spec = (string list) * E.forallformula * (T.t * string) list * (T.t * string) list
   let rec layout = function
     | ForAll ff -> E.layout_forallformula ff
     | Implies (p1, p2) -> sprintf "(%s => %s)" (layout p1) (layout p2)
@@ -45,7 +48,7 @@ module AstTree (E: Epr.Epr) : AstTree
     | Ite (p1, p2, p3) ->
       sprintf "(ite %s %s %s)" (layout p1) (layout p2) (layout p3)
     | SpecApply (specname, args) ->
-      sprintf "%s(%s)" specname (List.to_string E.SE.layout args)
+      sprintf "%s(%s)" specname (List.to_string E.SE.layout args ",")
   let vc_layout a =
     let mk_indent indent = String.init indent (fun _ -> ' ') in
     let rec aux indent = function
@@ -81,16 +84,21 @@ module AstTree (E: Epr.Epr) : AstTree
         sprintf "%s(ite%s\n%s\n%s)"
           (mk_indent indent) (aux 1 p1) (aux (indent + 4) p2) (aux (indent + 4) p3)
       | SpecApply (specname, args) ->
-        sprintf "%s%s(%s)" (mk_indent indent) specname (List.to_string E.SE.layout args)
+        sprintf "%s%s(%s)" (mk_indent indent) specname (List.to_string E.SE.layout args ",")
     in
     aux 0 a
-  let layout_spec (args, formula) =
-    sprintf "fun %s -> %s" (List.to_string (fun x -> x) args)
+  let layout_spec (args, formula, _ , _) =
+    sprintf "fun %s -> %s" (List.to_string (fun x -> x) args ",")
       (E.pretty_layout_forallformula formula)
 
-  let layout_spec_entry name (args, formula) =
+  let layout_spec_entry name (args, formula, _, _) =
+    let _ = print_newline () in
     sprintf "%s(%s):=\n%s" name
-      (List.to_string (fun x -> x) args) (E.pretty_layout_forallformula formula)
+      (List.to_string (fun x -> x) args ",") (E.pretty_layout_forallformula formula)
+
+  let layout_spec_entry_refinement_type name (_, formula, inptps, outptps) axiom =
+    let _ = print_newline () in
+    sprintf "let %s = \n\t%s%s" (String.uncapitalize_ascii name) (String.concat "" (List.map (fun (t,x) -> "let " ^x ^ " = (v:"^ T.layout t^ ") true in\n\t") inptps)) (E.refinement_layout_forallformula formula outptps axiom)
 
   let eq a b =
     let rec aux a b =

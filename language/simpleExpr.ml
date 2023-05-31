@@ -87,7 +87,7 @@ module SimpleExpr (B: SimpleExprTree.SimpleExprTree): SimpleExpr = struct
     | Var (tp, name) -> var_to_z3 ctx tp name
     | _ -> raise @@ InterExn "bvar_to_z3"
 
-  let predefined_predicates_table ctx =
+(*   let predefined_predicates_table ctx =
     let m = StrMap.empty in
     List.fold_left (fun m info ->
         StrMap.add info.P.raw_name
@@ -95,10 +95,10 @@ module SimpleExpr (B: SimpleExprTree.SimpleExprTree): SimpleExpr = struct
              (List.init info.P.raw_num_args (fun _ -> Integer.mk_sort ctx))
              (Boolean.mk_sort ctx))
           m
-      ) m P.raw_preds_info
+      ) m P.raw_preds_info *)
 
   let to_z3 ctx b =
-    let ptable = predefined_predicates_table ctx in
+    (* let ptable = predefined_predicates_table ctx in *)
     let rec aux = function
       | Literal (_, L.Int i) -> int_to_z3 ctx i
       | Literal (_, L.Bool b) -> bool_to_z3 ctx b

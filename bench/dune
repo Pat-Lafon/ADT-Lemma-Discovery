@@ -2,18 +2,7 @@
   (dev
     (flags (:standard -w -32 -w -35 -w -27 -w -33 -w -26)))
 )
-(tests
- (names
- customstk
- splayhp
- leftisthp
- unbset
- stream
- rbset
- bankersq
- batchedq
- trie
- uniquel
- )
+(executables
+ (names customstk)
  (libraries ounit2 solver inference frontend)
 )

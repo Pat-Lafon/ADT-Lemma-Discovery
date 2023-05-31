@@ -7,3 +7,4 @@ log.txt
 tmp*
 comparision/*
 dune-project
+_build/

@@ -1,4 +1,5 @@
 (library
  (name inference)
+ (public_name inference)
  (libraries utils pred language ml solver qcheck)
 )

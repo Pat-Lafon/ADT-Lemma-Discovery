@@ -1,4 +1,5 @@
 (library
  (name pred)
+ (public_name pred)
  (libraries utils z3 tp)
 )

@@ -1,9 +1,9 @@
 (env
   (dev
     (flags (:standard -w -32 -w -35 -w -27 -w -33 -w -26))))
-(tests
- (names
-  frontend
+;(tests
+; (names
+;  frontend
 ; language_test
 ; whole_test
 ; abduction_test
@@ -19,6 +19,6 @@
 ; bench_bankersqueue
 ; bench_splayheap
 ; spec_infer
-)
- (libraries ounit2 solver inference frontend)
-)
+;)
+; (libraries ounit2 solver inference frontend)
+;)

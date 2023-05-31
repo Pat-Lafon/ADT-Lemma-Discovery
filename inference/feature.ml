@@ -67,7 +67,7 @@ module Feature : Feature = struct
 
   let layout = function
     | Pr (pred, dts, args) ->
-      sprintf "%s(%s)" (P.layout pred) (StrList.to_string (dts @ args))
+      sprintf "%s(%s)" (P.layout pred) (StrList.to_string (dts @ args) ",")
     | Base (op, a, b) ->
       sprintf "%s %s %s" a op b
     | Bo x -> x

@@ -45,7 +45,7 @@ module SpecSyn (D: Dtree.Dtree) = struct
     let fv = List.map (fun n -> (T.Int, n)) @@ new_fv_name fv_num in
     let inptps = List.map T.make_name inptps in
     let outptps = List.map T.make_name outptps in
-    (* let _ = List.iter (fun (_, name) -> printf "%s\n" name) inptps in *)
+    (* let _ = List.iter (fun (ty, name) -> printf "%s : %s\n" name (T.layout ty)) inptps in *)
     (* let feature_set = F.make_set (outptps @ inptps @ fv) in *)
     let feature_set = F.make_set (inptps @ outptps @ fv) in
     (* let _ = printf "feature_set = %s\n" (F.layout_set feature_set) in *)
@@ -104,9 +104,9 @@ module SpecSyn (D: Dtree.Dtree) = struct
     let spec =
       let body = List.map get_tpvar_name fv, spec in
       match outptps with
-      | [(T.Bool, _)] -> List.map get_tpvar_name inptps, body
+      | [(T.Bool, _)] -> List.map get_tpvar_name inptps, body, inptps, outptps
       | _ ->
-        List.map get_tpvar_name (inptps @ outptps), body in
+        List.map get_tpvar_name (inptps @ outptps), body, inptps, outptps in
     (* let _ = printf "spec:%s\n" (Ast.layout_spec spec) in *)
     spec
 end

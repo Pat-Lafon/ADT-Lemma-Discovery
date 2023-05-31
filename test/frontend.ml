@@ -73,7 +73,7 @@ let spec_tab = add_spec spec_tab "snoc"
     ["lenf";"f";"lenr";"r";"x";"lenf'";"f'";"lenr'";"r'"] ["u"]
      (Iff(Or[list_member f u; list_member r u; int_eq u x],
              Or[list_member f' u; list_member r' u]
-            ))
+            )) []
 in
 let spec_tab_add spec_tab {name;intps;outtps;prog} =
   StrMap.add name (Spec.infer ~progtp:(intps,outtps) ~prog:prog) spec_tab in

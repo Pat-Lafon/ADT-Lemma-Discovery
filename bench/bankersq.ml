@@ -80,13 +80,13 @@ let preds = ["list_once"; "list_member"; "list_order"; "list_head"; "list_last";
 let bpreds = ["=="] in
 let _ = print_vc_spec vc spec_tab in
 let f, f', r, r' = map4 list_var ("f", "f'", "r", "r'") in
-let spec_tab = add_spec spec_tab "Snoc"
+let spec_tab_1 = add_spec spec_tab "Snoc"
     ["lenf";"f";"lenr";"r";"x";"lenf'";"f'";"lenr'";"r'"] ["u"]
     (Iff(Or[list_member f u; list_member r u],
          Or[And[list_member f' u; list_member r' x]; list_order r' x u; list_order f' u x]
-        ))
+        )) [T.Int, "lenf"; T.IntList, "f"; T.Int, "lenr"; T.IntList, "r"; T.Int, "x";] []
 in
-let _ = printf_assertion spec_tab ["Snoc"] in
+let _ = printf_assertion_refinement spec_tab_1 ["Snoc"] in
 let axiom1 = assertion ctx vc spec_tab
     ["list_once"; "list_member"; "list_order"; "list_last"; "list_head"]
     bpreds 125 6 true testname "axiom1" in

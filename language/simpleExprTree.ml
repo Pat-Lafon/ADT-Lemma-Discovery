@@ -9,6 +9,7 @@ module type SimpleExprTree = sig
     | Op of tp * op * t list
 
   val layout: t -> string
+  val refinement_layout: t -> string
   val subst: t -> string list -> t list -> t
   val eq: t -> t -> bool
   val var_to_tp_name: t -> (int list * (tp * string) list)
@@ -42,13 +43,29 @@ let layout_op op args =
   | "<=", [a; b] -> Printf.sprintf "(%s<=%s)" a b
   | ">", [a; b] -> Printf.sprintf "(%s>%s)" a b
   | "<", [a; b] -> Printf.sprintf "(%s<%s)" a b
-  | pred, args -> Printf.sprintf "%s(%s)" pred (List.to_string (fun x -> x) args)
+  | pred, args -> Printf.sprintf "(%s %s)" pred (List.to_string (fun x -> x) args " ")
 
 let rec layout = function
   | Literal (_, x) -> L.layout x
   | Var (_, name) -> name
   | Op (_, op, args) -> layout_op op (List.map layout args)
 
+(* let refinement_layout_op op args =
+  match op, args with
+  | "+", [a; b] -> Printf.sprintf "(%s+%s)" a b
+  | "-", [a; b] -> Printf.sprintf "%s-%s" a b
+  | "==", [a; b] -> Printf.sprintf "(%s==%s)" a b
+  | "<>", [a; b] -> Printf.sprintf "(%s<>%s)" a b
+  | ">=", [a; b] -> Printf.sprintf "(%s>=%s)" a b
+  | "<=", [a; b] -> Printf.sprintf "(%s<=%s)" a b
+  | ">", [a; b] -> Printf.sprintf "(%s>%s)" a b
+  | "<", [a; b] -> Printf.sprintf "(%s<%s)" a b
+  | pred, args -> Printf.sprintf "%s(%s)" pred (List.to_string (fun x -> x) args ",") *)
+
+let rec refinement_layout = function
+  | Literal (_, x) -> L.layout x
+  | Var (_, name) -> name
+  | Op (_, op, args) -> layout_op op (List.map refinement_layout args)
 
 let subst expr args argsvalue =
   let l = List.combine args argsvalue in

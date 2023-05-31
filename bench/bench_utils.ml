@@ -89,6 +89,11 @@ let print_vc_spec vc spec_tab =
       printf "##### %s\n\n```\n%s\n```\n\n" name (layout_spec_entry name spec)) spec_tab in
   ()
 
+let print_spec_refinement spec_tab oc (axiom:(tp * E.forallformula) option) =
+  let _ = StrMap.iter (fun name spec ->
+      Printf.fprintf oc "%s\n\n"(layout_spec_entry_refinement_type name spec axiom)) spec_tab in
+  ()
+
 let counter = ref 1
 
 let printf_assertion spec_tab names =
@@ -97,17 +102,41 @@ let printf_assertion spec_tab names =
       printf "#### assertion-%i\n\n```\n%s\n```\n\n" (!counter) (layout_spec_entry name spec)
     ) names
 
+let printf_assertion_refinement spec_tab oc names =
+  List.iter (fun name ->
+      let spec = StrMap.find "printf_assertion" spec_tab name in
+      Printf.fprintf oc "%s"(layout_spec_entry_refinement_type name spec None)
+    ) names
+
 let assertion ?(startX=1) ?(maxX=3) ctx vc spec_tab preds bpreds sampledata bound expected filename name  =
   let axiom, time_delta = time
     (fun _ ->
        Axiom.infer ~ctx:ctx ~vc:vc ~spectable:spec_tab ~preds:preds ~bpreds:bpreds
          ~startX:startX ~maxX:maxX ~sampledata:sampledata ~samplebound:bound) () in
+
   match axiom, expected with
   | (_, None), false -> printf "connot infer axiom\n"; None
   | (stat, Some (dttp, axiom)), true ->
     let _ = record_stat stat time_delta filename name in
     let _ = printf "#### lemma-%i\n\n```\n%s\n```\n\n"
         (!counter) (E.pretty_layout_forallformula axiom) in
+    let _ = counter:= (!counter) + 1 in
+    Some (dttp, axiom)
+
+  | _ -> raise @@ InterExn "bench: wrong result"
+
+let assertion ?(startX=1) ?(maxX=3) ctx vc spec_tab preds bpreds sampledata bound expected filename name  =
+  let axiom, time_delta = time
+    (fun _ ->
+       Axiom.infer ~ctx:ctx ~vc:vc ~spectable:spec_tab ~preds:preds ~bpreds:bpreds
+         ~startX:startX ~maxX:maxX ~sampledata:sampledata ~samplebound:bound) () in
+
+  match axiom, expected with
+  | (_, None), false -> printf "connot infer axiom\n"; None
+  | (stat, Some (dttp, axiom)), true ->
+    let _ = record_stat stat time_delta filename name in
+(*     let _ = printf "#### lemma-%i\n\n```\n%s\n```\n\n"
+        (!counter) (E.refinement_layout_forallformula axiom []) in *)
     let _ = counter:= (!counter) + 1 in
     Some (dttp, axiom)
 

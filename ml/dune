@@ -4,5 +4,6 @@
 
 (library
  (name ml)
+ (public_name ml)
  (libraries str bigarray)
 )

@@ -16,8 +16,8 @@ module Helper = struct
   let treeb_var name = SE.Var (T.IntTreeB, name)
   let int_var name = SE.Var (T.Int, name)
   let bool_var name = SE.Var (T.Bool, name)
-  let add_spec spectab name args fv body =
-    StrMap.add name (args, (fv,body)) spectab
+  let add_spec spectab name args fv body inptps outptps =
+    StrMap.add name (args, (fv,body), inptps, outptps) spectab
   let l0    = list_var "l0"
   let l1    = list_var "l1"
   let l2    = list_var "l2"
@@ -75,8 +75,8 @@ module Helper = struct
   let int_eq a b = E.Atom (SE.Op (T.Bool, "==", [a;b]))
   let predefined_spec_tab =
     let spec_tab = StrMap.empty in
-    let spec_tab = add_spec spec_tab "Plus" ["x";"y";"z"] [] (int_eq (int_plus x y) z) in
-    let spec_tab = add_spec spec_tab "Le" ["x";"y"] [] (int_le x y) in
-    let spec_tab = add_spec spec_tab "equal" ["x";"y"] [] (int_eq x y) in
+(*     let spec_tab = add_spec spec_tab "Plus" ["x";"y";"z"] [] (int_eq (int_plus x y) z) [(T.Int, "x"); (T.Int, "y"); (T.Int, "z")] [T.Bool, "v"] in
+    let spec_tab = add_spec spec_tab "Le" ["x";"y"] [] (int_le x y) [(T.Int, "x"); (T.Int, "y")] [(T.Bool, "v")] in
+    let spec_tab = add_spec spec_tab "equal" ["x";"y"] [] (int_eq x y) [(T.Int, "x"); (T.Int, "y")] [T.Bool, "v"] in *)
     spec_tab
 end

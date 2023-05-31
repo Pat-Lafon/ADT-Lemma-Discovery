@@ -91,7 +91,7 @@ module Dtree : Dtree = struct
 
   let to_spec (dtree: t) =
     let dts, elems = get_vars dtree in
-    dts, (elems, to_epr dtree)
+    dts, (elems, to_epr dtree), [], []
 
 
   let of_fastdt dt feature_set =

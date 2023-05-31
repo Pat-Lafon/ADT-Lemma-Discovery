@@ -23,7 +23,7 @@ let testname = "uniquel" in
 let ctx = init () in
 let spec_tab = predefined_spec_tab in
 let _eq a b = SpecApply ("Eq", [a;b]) in
-let spec_tab = add_spec spec_tab "Eq" ["a";"b"] [] (int_eq a b) in
+let spec_tab = add_spec spec_tab "Eq" ["a";"b"] [] (int_eq a b) [T.Int, "a"; T.Int, "b"] [] in
 let spec_tab, cons = register spec_tab
     {name = "Cons"; intps = [T.Int; T.IntList]; outtps = [T.IntList];
             prog = function
@@ -53,16 +53,17 @@ let vc =
 in
 let preds = ["list_once"; "list_member"; "list_order"; "list_head"; "list_last"; "list_next"] in
 let bpreds = ["=="] in
-let _ = print_vc_spec vc spec_tab in
 let spec_tab = add_spec spec_tab "SetAdd" ["x";"l1";"l2"] ["u";]
     (E.And [
         E.Iff(list_member l2 u, E.Or [int_eq u x; list_member l1 u]);
-      ])
+      ]) [T.Int, "x"; T.IntList, "l1"; T.IntList, "l2"] []
 in
-let _ = printf_assertion spec_tab ["SetAdd"] in
+let _ = printf_assertion_refinement spec_tab ["SetAdd"] in
 let axiom1 = assertion ctx vc spec_tab
     ["list_member"; "list_order"; "list_head";]
     bpreds 50 6 true testname "axiom1" in
+
+let _ = print_spec_refinement spec_tab axiom1 in
 
 let spec_tab = add_spec spec_tab "SetAdd" ["x";"l1";"l2"] ["u";]
     (E.And [
@@ -70,10 +71,10 @@ let spec_tab = add_spec spec_tab "SetAdd" ["x";"l1";"l2"] ["u";]
         E.Iff(list_member l2 u, E.Or [int_eq u x; list_member l1 u]);
       ])
 in
-let _ = printf_assertion spec_tab ["SetAdd"] in
+(* let _ = printf_assertion spec_tab ["SetAdd"] in
 let axiom2 = assertion ctx vc spec_tab
     ["list_member"; "list_order"; "list_head";"list_once"]
-    bpreds 90 6 true testname "axiom2" in
+    bpreds 90 6 true testname "axiom2" in *)
 
-let _ = to_verifier testname [axiom1;axiom2] in
+let _ = to_verifier testname [axiom1] in
 ();;

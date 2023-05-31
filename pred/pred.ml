@@ -70,7 +70,7 @@ module Predicate (V: Value.Value) : Predicate with type V.t = V.t = struct
     {raw_name="once"; raw_num_args=2;};
     {raw_name="order"; raw_num_args=5;}]
   let apply_layout (pred, dt, args) =
-    sprintf "%s(%s, %s)" pred (V.layout dt) (List.to_string V.layout args)
+    sprintf "%s(%s, %s)" pred (V.layout dt) (List.to_string V.layout args ",")
 
   let find_pred_info_by_name name =
     match List.find_opt (fun info -> String.equal info.name name) preds_info with
@@ -218,7 +218,7 @@ module Predicate (V: Value.Value) : Predicate with type V.t = V.t = struct
     | "once", [arg] -> once_apply dt arg
     | "order", [V.I i0; V.I i1; arg0; arg1] -> order_apply dt i0 i1 arg0 arg1
     | "==", [arg0; arg1] -> eq_apply arg0 arg1
-    | _ -> raise @@ InterExn (sprintf "apply_:%s(%s)" pred (List.to_string V.layout args))
+    | _ -> raise @@ InterExn (sprintf "apply_:%s(%s)" pred (List.to_string V.layout args ","))
 
   let apply ((pred, dt, args) : t * V.t * V.t list) : bool =
     let (pred, dt, args) = desugar_ (pred, dt, args) in
