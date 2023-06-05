@@ -11,4 +11,6 @@ tmp*
 coq/*
 comparision/*
 _*
-dune-project
+_build
+*.opam
+frontend/parsing

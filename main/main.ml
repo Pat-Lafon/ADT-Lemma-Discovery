@@ -3,6 +3,7 @@ module Value = Pred.Value
 module SpecAbd = Inference.SpecAbduction;;
 module Env = Inference.Env;;
 
+module Env2 = Env
 open Ast
 open Utils
 open Z3
@@ -37,7 +38,7 @@ let start action sourcefile assertionfile outputdir sampling_bound timebound =
   let assertion = parse assertionfile in
   (* let () = raise @@ InterExn "end" in *)
   let mii, vc, holes, preds, spectab, basic_info = Translate.trans (source, assertion) in
-  let () = Core.Unix.mkdir_p (Printf.sprintf "_%s" outputdir) in
+  let () = Core_unix.mkdir_p (Printf.sprintf "_%s" outputdir) in
   let basic_info_filename = Printf.sprintf "_%s/_basic_info.json" outputdir in
   let () = Yojson.Basic.to_file basic_info_filename basic_info in
   let r () =
@@ -167,9 +168,14 @@ let to_coq resultfile funcname =
 
 open Core
 
+open Core_unix
+
+open Sys
+
+open Utils
 let regular_file =
   Command.Arg_type.create (fun filename ->
-      match Sys.is_file filename with
+      match Sys_unix.is_file filename with
       | `Yes -> filename
       | `No -> failwith "Not a regular file"
       | `Unknown -> failwith "Could not determine if this was a regular file")
@@ -237,7 +243,7 @@ let show_consistent =
       fun () ->
         let consistent_file = sprintf "_%s/_consistent.json" outputdir in
         (try
-           let _, spectab = Env.decode_infer_result (Yojson.Basic.from_file consistent_file) in
+           let _, spectab = Env2.decode_infer_result (Yojson.Basic.from_file consistent_file) in
            let () = Ast.print_spectable spectab in
            ()
          with
@@ -315,5 +321,5 @@ let command =
       "coq", coq;
     ]
 
-let () = Command.run command
+let () = Command_unix.run command
 ;;

@@ -1,4 +1,4 @@
 (library
  (name utils)
- (libraries yojson core)
+ (libraries yojson core core_unix)
 )

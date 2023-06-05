@@ -5,7 +5,7 @@ exception UndefExn of string
 let addadd x = (x := !x + 1)
 
 let make_dir name =
-  Core.Unix.mkdir_p name
+  Core_unix.mkdir_p name
 
 (* module StrMap = Map.Make(String);; *)
 module IntMap = Map.Make(struct type t = int let compare = compare end);;
