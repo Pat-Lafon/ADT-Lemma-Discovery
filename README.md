@@ -468,7 +468,7 @@ This section gives a brief overview of the files in this artifact.
 * `inference/`: the specification mapping inference modules, including
   both consistent inference and weakening inference.
 * `language/`: Elrond's intermediate specification language.
-* `ml/`: the decistion tree learner.
+* `ml/`: the decision tree learner.
 * `main/main.ml`: the main entry point of Elrond.
 * `pred/`: built-in implementation of predicates.
 * `proof/`: the coq proof generator.

@@ -272,7 +272,6 @@ let show_weakening =
         ()
     )
 
-
 let show =
   Command.group ~summary:"show"
     [ "consistent", show_consistent;
@@ -281,7 +280,7 @@ let show =
 
 let diff =
    Command.basic
-     ~summary:"time𝑑: calculate the time needed for the SMT solver to find a sample allowed by aweakened solution but not the initial one"
+     ~summary:"timed: calculate the time needed for the SMT solver to find a sample allowed by aweakened solution but not the initial one"
     Command.Let_syntax.(
       let%map_open sourcefile = anon ("sourcefile" %: regular_file)
       and assertionfile = anon ("assertionfile" %: regular_file)
