@@ -1,0 +1,20 @@
+(env
+ (dev
+  (flags
+   (:standard -w -32 -w -35 -w -27 -w -33 -w -26))))
+
+(library
+ (name main_lib)
+ (package my_project)
+ (libraries ounit2
+  solver
+  inference
+  frontend
+  translate
+  core
+  core_unix
+  core_unix.sys_unix
+  core_unix.command_unix)
+   (preprocess
+  (pps ppx_jane))
+)

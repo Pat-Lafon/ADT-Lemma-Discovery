@@ -1,3 +1,4 @@
 (library
  (name inference)
+  (package my_project)
  (libraries utils pred language ml solver qcheck core))

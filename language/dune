@@ -1,3 +1,4 @@
 (library
  (name language)
+ (package my_project)
  (libraries utils pred z3 tp solver yojson))

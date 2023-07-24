@@ -7,6 +7,7 @@ module SE = E.SE
 module T = Tp.Tp
 module Helper = Language.Helper
 module V = Pred.Value
+include Imps
 
 module Impmap = struct
   (* hardcode the Polymorphic Variants! *)
@@ -288,10 +289,19 @@ module TenvEngine = struct
   let print_tmap tmap =
     StrMap.iter (fun name t -> printf "%s: %s\n" name (T.layout t)) tmap
 
+  let print_funcm funcm =
+    StrMap.iter
+      (fun name (args, rets) ->
+        printf "%s: %s -> %s\n" name
+          (Utils.List.to_string T.layout args)
+          (Utils.List.to_string T.layout rets))
+      funcm
+
   let print_tenv tenv =
     printf "signame:%s\nsigtps:%s\n" tenv.signame
       (StrList.to_string tenv.sigtps);
-    print_tmap tenv.tmap
+    print_tmap tenv.tmap;
+    print_funcm tenv.funcm
 
   let signame_concat signame name =
     match signame with

@@ -1,3 +1,4 @@
 (library
  (name pred)
+ (package my_project)
  (libraries utils z3 tp))

@@ -1,3 +1,4 @@
 (library
  (name translate)
+  (package my_project)
  (libraries utils language frontend inference))

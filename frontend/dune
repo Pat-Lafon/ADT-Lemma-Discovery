@@ -18,6 +18,7 @@
 
 (library
  (name frontend)
+ (package my_project)
  (wrapped false)
  (flags
   (:standard -principal))
