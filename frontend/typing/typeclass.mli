@@ -17,52 +17,85 @@ open Asttypes
 open Types
 open Format
 
-val class_declarations:
-  Env.t -> Parsetree.class_declaration list ->
-  (Ident.t * string loc * class_declaration *
-   Ident.t * class_type_declaration *
-   Ident.t * type_declaration *
-   Ident.t * type_declaration *
-   int * string list * Typedtree.class_declaration) list * Env.t
+val class_declarations :
+  Env.t ->
+  Parsetree.class_declaration list ->
+  (Ident.t
+  * string loc
+  * class_declaration
+  * Ident.t
+  * class_type_declaration
+  * Ident.t
+  * type_declaration
+  * Ident.t
+  * type_declaration
+  * int
+  * string list
+  * Typedtree.class_declaration)
+  list
+  * Env.t
 
 (*
 and class_declaration =
   (class_expr, Types.class_declaration) class_infos
 *)
 
-val class_descriptions:
-  Env.t -> Parsetree.class_description list ->
-  (Ident.t * string loc * class_declaration *
-   Ident.t * class_type_declaration *
-   Ident.t * type_declaration *
-   Ident.t * type_declaration *
-   int * string list * Typedtree.class_description) list * Env.t
+val class_descriptions :
+  Env.t ->
+  Parsetree.class_description list ->
+  (Ident.t
+  * string loc
+  * class_declaration
+  * Ident.t
+  * class_type_declaration
+  * Ident.t
+  * type_declaration
+  * Ident.t
+  * type_declaration
+  * int
+  * string list
+  * Typedtree.class_description)
+  list
+  * Env.t
 
 (*
 and class_description =
   (class_type, unit) class_infos
 *)
 
-val class_type_declarations:
-  Env.t -> Parsetree.class_description list ->
-  (Ident.t * string loc * class_type_declaration *
-   Ident.t * type_declaration *
-   Ident.t * type_declaration *
-  Typedtree.class_type_declaration) list * Env.t
+val class_type_declarations :
+  Env.t ->
+  Parsetree.class_description list ->
+  (Ident.t
+  * string loc
+  * class_type_declaration
+  * Ident.t
+  * type_declaration
+  * Ident.t
+  * type_declaration
+  * Typedtree.class_type_declaration)
+  list
+  * Env.t
 
 (*
 and class_type_declaration =
   (class_type, Types.class_type_declaration) class_infos
 *)
 
-val approx_class_declarations:
-  Env.t -> Parsetree.class_description list ->
-  (Ident.t * string loc * class_type_declaration *
-   Ident.t * type_declaration *
-   Ident.t * type_declaration *
-  Typedtree.class_type_declaration) list
+val approx_class_declarations :
+  Env.t ->
+  Parsetree.class_description list ->
+  (Ident.t
+  * string loc
+  * class_type_declaration
+  * Ident.t
+  * type_declaration
+  * Ident.t
+  * type_declaration
+  * Typedtree.class_type_declaration)
+  list
 
-val virtual_methods: Types.class_signature -> label list
+val virtual_methods : Types.class_signature -> label list
 
 (*
 val type_classes :
@@ -80,7 +113,7 @@ val type_classes :
 *)
 
 type error =
-    Unconsistent_constraint of (type_expr * type_expr) list
+  | Unconsistent_constraint of (type_expr * type_expr) list
   | Field_type_mismatch of string * string * (type_expr * type_expr) list
   | Structure_expected of class_type
   | Cannot_apply of class_type

@@ -18,9 +18,9 @@
 open Format
 
 type t = {
-  loc_start: Lexing.position;
-  loc_end: Lexing.position;
-  loc_ghost: bool;
+  loc_start : Lexing.position;
+  loc_end : Lexing.position;
+  loc_ghost : bool;
 }
 
 (* Note on the use of Lexing.position in this module.
@@ -43,25 +43,24 @@ val init : Lexing.lexbuf -> string -> unit
 val curr : Lexing.lexbuf -> t
 (** Get the location of the current token from the [lexbuf]. *)
 
-val symbol_rloc: unit -> t
-val symbol_gloc: unit -> t
+val symbol_rloc : unit -> t
+val symbol_gloc : unit -> t
 
+val rhs_loc : int -> t
 (** [rhs_loc n] returns the location of the symbol at position [n], starting
   at 1, in the current parser rule. *)
-val rhs_loc: int -> t
 
-val input_name: string ref
-val input_lexbuf: Lexing.lexbuf option ref
-
-val get_pos_info: Lexing.position -> string * int * int (* file, line, char *)
-val print_loc: formatter -> t -> unit
-val print_error: formatter -> t -> unit
-val print_error_cur_file: formatter -> unit -> unit
-val print_warning: t -> formatter -> Warnings.t -> unit
+val input_name : string ref
+val input_lexbuf : Lexing.lexbuf option ref
+val get_pos_info : Lexing.position -> string * int * int (* file, line, char *)
+val print_loc : formatter -> t -> unit
+val print_error : formatter -> t -> unit
+val print_error_cur_file : formatter -> unit -> unit
+val print_warning : t -> formatter -> Warnings.t -> unit
 val formatter_for_warnings : formatter ref
-val prerr_warning: t -> Warnings.t -> unit
-val echo_eof: unit -> unit
-val reset: unit -> unit
+val prerr_warning : t -> Warnings.t -> unit
+val echo_eof : unit -> unit
+val reset : unit -> unit
 
 val warning_printer : (t -> formatter -> Warnings.t -> unit) ref
 (** Hook for intercepting warnings. *)
@@ -69,72 +68,74 @@ val warning_printer : (t -> formatter -> Warnings.t -> unit) ref
 val default_warning_printer : t -> formatter -> Warnings.t -> unit
 (** Original warning printer for use in hooks. *)
 
-val highlight_locations: formatter -> t list -> bool
+val highlight_locations : formatter -> t list -> bool
 
-type 'a loc = {
-  txt : 'a;
-  loc : t;
-}
+type 'a loc = { txt : 'a; loc : t }
 
 val mknoloc : 'a -> 'a loc
 val mkloc : 'a -> t -> 'a loc
+val print : formatter -> t -> unit
+val print_compact : formatter -> t -> unit
+val print_filename : formatter -> string -> unit
+val absolute_path : string -> string
 
-val print: formatter -> t -> unit
-val print_compact: formatter -> t -> unit
-val print_filename: formatter -> string -> unit
-
-val absolute_path: string -> string
-
-val show_filename: string -> string
-    (** In -absname mode, return the absolute path for this filename.
+val show_filename : string -> string
+(** In -absname mode, return the absolute path for this filename.
         Otherwise, returns the filename unchanged. *)
 
-
-val absname: bool ref
+val absname : bool ref
 
 (* Support for located errors *)
 
-type error =
-  {
-    loc: t;
-    msg: string;
-    sub: error list;
-    if_highlight: string; (* alternative message if locations are highlighted *)
-  }
+type error = {
+  loc : t;
+  msg : string;
+  sub : error list;
+  if_highlight : string; (* alternative message if locations are highlighted *)
+}
 
 exception Error of error
 
-val print_error_prefix: formatter -> unit -> unit
-  (* print the prefix "Error:" possibly with style *)
+val print_error_prefix : formatter -> unit -> unit
+(* print the prefix "Error:" possibly with style *)
 
-val error: ?loc:t -> ?sub:error list -> ?if_highlight:string -> string -> error
+val error : ?loc:t -> ?sub:error list -> ?if_highlight:string -> string -> error
 
-val errorf: ?loc:t -> ?sub:error list -> ?if_highlight:string
-            -> ('a, Format.formatter, unit, error) format4 -> 'a
+val errorf :
+  ?loc:t ->
+  ?sub:error list ->
+  ?if_highlight:string ->
+  ('a, Format.formatter, unit, error) format4 ->
+  'a
 
-val errorf_prefixed : ?loc:t -> ?sub:error list -> ?if_highlight:string
-                    -> ('a, Format.formatter, unit, error) format4 -> 'a
-  (* same as {!errorf}, but prints the error prefix "Error:" before yielding
-   * to the format string *)
+val errorf_prefixed :
+  ?loc:t ->
+  ?sub:error list ->
+  ?if_highlight:string ->
+  ('a, Format.formatter, unit, error) format4 ->
+  'a
+(* same as {!errorf}, but prints the error prefix "Error:" before yielding
+ * to the format string *)
 
-val raise_errorf: ?loc:t -> ?sub:error list -> ?if_highlight:string
-            -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+val raise_errorf :
+  ?loc:t ->
+  ?sub:error list ->
+  ?if_highlight:string ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
 
-val error_of_printer: t -> (formatter -> 'a -> unit) -> 'a -> error
+val error_of_printer : t -> (formatter -> 'a -> unit) -> 'a -> error
+val error_of_printer_file : (formatter -> 'a -> unit) -> 'a -> error
+val error_of_exn : exn -> error option
+val register_error_of_exn : (exn -> error option) -> unit
+(* Each compiler module which defines a custom type of exception
+   which can surface as a user-visible error should register
+   a "printer" for this exception using [register_error_of_exn].
+   The result of the printer is an [error] value containing
+   a location, a message, and optionally sub-messages (each of them
+   being located as well). *)
 
-val error_of_printer_file: (formatter -> 'a -> unit) -> 'a -> error
-
-val error_of_exn: exn -> error option
-
-val register_error_of_exn: (exn -> error option) -> unit
-  (* Each compiler module which defines a custom type of exception
-     which can surface as a user-visible error should register
-     a "printer" for this exception using [register_error_of_exn].
-     The result of the printer is an [error] value containing
-     a location, a message, and optionally sub-messages (each of them
-     being located as well). *)
-
-val report_error: formatter -> error -> unit
+val report_error : formatter -> error -> unit
 
 val error_reporter : (formatter -> error -> unit) ref
 (** Hook for intercepting error reports. *)
@@ -142,5 +143,5 @@ val error_reporter : (formatter -> error -> unit) ref
 val default_error_reporter : formatter -> error -> unit
 (** Original error reporter for use in hooks. *)
 
-val report_exception: formatter -> exn -> unit
-  (* Reraise the exception if it is unknown. *)
+val report_exception : formatter -> exn -> unit
+(* Reraise the exception if it is unknown. *)

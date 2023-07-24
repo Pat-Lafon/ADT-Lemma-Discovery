@@ -15,38 +15,34 @@
 
 open Format
 
-type error =
-  | CannotRun of string
-  | WrongMagic of string
+type error = CannotRun of string | WrongMagic of string
 
 exception Error of error
 
 (* Optionally preprocess a source file *)
 
 let call_external_preprocessor sourcefile pp =
-      let tmpfile = Filename.temp_file "ocamlpp" "" in
-      let comm = Printf.sprintf "%s %s > %s"
-                                pp (Filename.quote sourcefile) tmpfile
-      in
-      if Ccomp.command comm <> 0 then begin
-        Misc.remove_file tmpfile;
-        raise (Error (CannotRun comm));
-      end;
-      tmpfile
+  let tmpfile = Filename.temp_file "ocamlpp" "" in
+  let comm =
+    Printf.sprintf "%s %s > %s" pp (Filename.quote sourcefile) tmpfile
+  in
+  if Ccomp.command comm <> 0 then (
+    Misc.remove_file tmpfile;
+    raise (Error (CannotRun comm)));
+  tmpfile
 
 let preprocess sourcefile =
   match !Clflags.preprocessor with
-    None -> sourcefile
+  | None -> sourcefile
   | Some pp ->
       Timings.(time (Preprocessing sourcefile))
-        (call_external_preprocessor sourcefile) pp
-
+        (call_external_preprocessor sourcefile)
+        pp
 
 let remove_preprocessed inputfile =
   match !Clflags.preprocessor with
-    None -> ()
+  | None -> ()
   | Some _ -> Misc.remove_file inputfile
-
 
 (* Note: some of the functions here should go to Ast_mapper instead,
    which would encapsulate the "binary AST" protocol. *)
@@ -67,28 +63,27 @@ let apply_rewriter magic fn_in ppx =
   in
   let ok = Ccomp.command comm = 0 in
   Misc.remove_file fn_in;
-  if not ok then begin
+  if not ok then (
     Misc.remove_file fn_out;
-    raise (Error (CannotRun comm));
-  end;
-  if not (Sys.file_exists fn_out) then
-    raise (Error (WrongMagic comm));
+    raise (Error (CannotRun comm)));
+  if not (Sys.file_exists fn_out) then raise (Error (WrongMagic comm));
   (* check magic before passing to the next ppx *)
   let ic = open_in_bin fn_out in
   let buffer =
-    try really_input_string ic (String.length magic) with End_of_file -> "" in
+    try really_input_string ic (String.length magic) with End_of_file -> ""
+  in
   close_in ic;
-  if buffer <> magic then begin
+  if buffer <> magic then (
     Misc.remove_file fn_out;
-    raise (Error (WrongMagic comm));
-  end;
+    raise (Error (WrongMagic comm)));
   fn_out
 
 let read_ast magic fn =
   let ic = open_in_bin fn in
   try
     let buffer = really_input_string ic (String.length magic) in
-    assert(buffer = magic); (* already checked by apply_rewriter *)
+    assert (buffer = magic);
+    (* already checked by apply_rewriter *)
     Location.input_name := input_value ic;
     let ast = input_value ic in
     close_in ic;
@@ -101,8 +96,7 @@ let read_ast magic fn =
 
 let rewrite magic ast ppxs =
   read_ast magic
-    (List.fold_left (apply_rewriter magic) (write_ast magic ast)
-       (List.rev ppxs))
+    (List.fold_left (apply_rewriter magic) (write_ast magic ast) (List.rev ppxs))
 
 let apply_rewriters_str ?(restore = true) ~tool_name ast =
   match !Clflags.all_ppx with
@@ -125,8 +119,7 @@ let apply_rewriters ?restore ~tool_name magic ast =
     Obj.magic (apply_rewriters_str ?restore ~tool_name (Obj.magic ast))
   else if magic = Config.ast_intf_magic_number then
     Obj.magic (apply_rewriters_sig ?restore ~tool_name (Obj.magic ast))
-  else
-    assert false
+  else assert false
 
 (* Parse a file or get a dumped syntax tree from it *)
 
@@ -142,31 +135,32 @@ let open_and_check_magic inputfile ast_magic =
         raise Outdated_version
       else false
     with
-      Outdated_version ->
+    | Outdated_version ->
         Misc.fatal_error "OCaml and preprocessor have incompatible versions"
     | _ -> false
   in
   (ic, is_ast_file)
 
 let file_aux ppf ~tool_name inputfile parse_fun invariant_fun ast_magic =
-  let (ic, is_ast_file) = open_and_check_magic inputfile ast_magic in
+  let ic, is_ast_file = open_and_check_magic inputfile ast_magic in
   let ast =
     try
-      if is_ast_file then begin
+      if is_ast_file then (
         if !Clflags.fast then
           (* FIXME make this a proper warning *)
           fprintf ppf "@[Warning: %s@]@."
             "option -unsafe used with a preprocessor returning a syntax tree";
         Location.input_name := input_value ic;
-        input_value ic
-      end else begin
+        input_value ic)
+      else (
         seek_in ic 0;
         Location.input_name := inputfile;
         let lexbuf = Lexing.from_channel ic in
         Location.init lexbuf inputfile;
-        parse_fun lexbuf
-      end
-    with x -> close_in ic; raise x
+        parse_fun lexbuf)
+    with x ->
+      close_in ic;
+      raise x
   in
   close_in ic;
   let ast = apply_rewriters ~restore:false ~tool_name ast_magic ast in
@@ -178,18 +172,18 @@ let file ppf ~tool_name inputfile parse_fun ast_magic =
 
 let report_error ppf = function
   | CannotRun cmd ->
-      fprintf ppf "Error while running external preprocessor@.\
-                   Command line: %s@." cmd
+      fprintf ppf
+        "Error while running external preprocessor@.Command line: %s@." cmd
   | WrongMagic cmd ->
-      fprintf ppf "External preprocessor does not produce a valid file@.\
-                   Command line: %s@." cmd
+      fprintf ppf
+        "External preprocessor does not produce a valid file@.Command line: \
+         %s@."
+        cmd
 
 let () =
-  Location.register_error_of_exn
-    (function
-      | Error err -> Some (Location.error_of_printer_file report_error err)
-      | _ -> None
-    )
+  Location.register_error_of_exn (function
+    | Error err -> Some (Location.error_of_printer_file report_error err)
+    | _ -> None)
 
 let parse_all ~tool_name parse_fun invariant_fun magic ppf sourcefile =
   Location.input_name := sourcefile;
@@ -206,10 +200,9 @@ let parse_all ~tool_name parse_fun invariant_fun magic ppf sourcefile =
 let parse_implementation ppf ~tool_name sourcefile =
   parse_all ~tool_name
     (Timings.(time (Parsing sourcefile)) Parse.implementation)
-    Ast_invariants.structure
-    Config.ast_impl_magic_number ppf sourcefile
+    Ast_invariants.structure Config.ast_impl_magic_number ppf sourcefile
+
 let parse_interface ppf ~tool_name sourcefile =
   parse_all ~tool_name
     (Timings.(time (Parsing sourcefile)) Parse.interface)
-    Ast_invariants.signature
-    Config.ast_intf_magic_number ppf sourcefile
+    Ast_invariants.signature Config.ast_intf_magic_number ppf sourcefile

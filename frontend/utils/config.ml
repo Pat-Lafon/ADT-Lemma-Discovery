@@ -15,38 +15,46 @@
 
 (***********************************************************************)
 (**                                                                   **)
+
 (**               WARNING WARNING WARNING                             **)
+
 (**                                                                   **)
+
 (** When you change this file, you must make the parallel change      **)
+
 (** in config.mlbuild                                                 **)
+
 (**                                                                   **)
 (***********************************************************************)
 
-
 (* The main OCaml version string has moved to ../VERSION *)
 let version = Sys.ocaml_version
-
 let standard_library_default = "/usr/local/lib/ocaml"
 
 let standard_library =
-  try
-    Sys.getenv "OCAMLLIB"
-  with Not_found ->
-  try
-    Sys.getenv "CAMLLIB"
-  with Not_found ->
-    standard_library_default
+  try Sys.getenv "OCAMLLIB"
+  with Not_found -> (
+    try Sys.getenv "CAMLLIB" with Not_found -> standard_library_default)
 
 let standard_runtime = "/usr/local/bin/ocamlrun"
 let ccomp_type = "cc"
-let bytecomp_c_compiler = "gcc -O2 -fno-strict-aliasing -fwrapv -Wall -D_FILE_OFFSET_BITS=64 -D_REENTRANT "
+
+let bytecomp_c_compiler =
+  "gcc -O2 -fno-strict-aliasing -fwrapv -Wall -D_FILE_OFFSET_BITS=64 \
+   -D_REENTRANT "
+
 let bytecomp_c_libraries = "-lcurses -lpthread                  "
-let native_c_compiler = "gcc -O2 -fno-strict-aliasing -fwrapv -Wall -D_FILE_OFFSET_BITS=64 -D_REENTRANT"
+
+let native_c_compiler =
+  "gcc -O2 -fno-strict-aliasing -fwrapv -Wall -D_FILE_OFFSET_BITS=64 \
+   -D_REENTRANT"
+
 let native_c_libraries = ""
 let native_pack_linker = "ld -r -arch x86_64  -o "
 let ranlib = "ranlib"
 let ar = "ar"
 let cc_profile = "-pg"
+
 let mkdll, mkexe, mkmaindll =
   (* @@DRA Cygwin - but only if shared libraries are enabled, which we
      should be able to detect? *)
@@ -56,15 +64,23 @@ let mkdll, mkexe, mkmaindll =
         let flexlink = Sys.getenv "OCAML_FLEXLINK" in
         let f i =
           let c = flexlink.[i] in
-          if c = '/' then '\\' else c in
-        (String.init (String.length flexlink) f) ^ " %%FLEXLINK_FLAGS%%" in
-      flexlink,
-      flexlink ^ " -exe",
-      flexlink ^ " -maindll"
+          if c = '/' then '\\' else c
+        in
+        String.init (String.length flexlink) f ^ " %%FLEXLINK_FLAGS%%"
+      in
+      (flexlink, flexlink ^ " -exe", flexlink ^ " -maindll")
     with Not_found ->
-      "gcc -bundle -flat_namespace -undefined suppress                    -Wl,-no_compact_unwind", "gcc -Wl,-no_compact_unwind", "gcc -bundle -flat_namespace -undefined suppress                    -Wl,-no_compact_unwind"
+      ( "gcc -bundle -flat_namespace -undefined suppress                    \
+         -Wl,-no_compact_unwind",
+        "gcc -Wl,-no_compact_unwind",
+        "gcc -bundle -flat_namespace -undefined suppress                    \
+         -Wl,-no_compact_unwind" )
   else
-    "gcc -bundle -flat_namespace -undefined suppress                    -Wl,-no_compact_unwind", "gcc -Wl,-no_compact_unwind", "gcc -bundle -flat_namespace -undefined suppress                    -Wl,-no_compact_unwind"
+    ( "gcc -bundle -flat_namespace -undefined suppress                    \
+       -Wl,-no_compact_unwind",
+      "gcc -Wl,-no_compact_unwind",
+      "gcc -bundle -flat_namespace -undefined suppress                    \
+       -Wl,-no_compact_unwind" )
 
 let flambda = false
 
@@ -72,58 +88,44 @@ let exec_magic_number = "Caml1999X011"
 and cmi_magic_number = "Caml1999I020"
 and cmo_magic_number = "Caml1999O011"
 and cma_magic_number = "Caml1999A012"
-and cmx_magic_number =
-  if flambda then
-    "Caml1999Y016"
-  else
-    "Caml1999Y015"
-and cmxa_magic_number =
-  if flambda then
-    "Caml1999Z015"
-  else
-    "Caml1999Z014"
+and cmx_magic_number = if flambda then "Caml1999Y016" else "Caml1999Y015"
+and cmxa_magic_number = if flambda then "Caml1999Z015" else "Caml1999Z014"
 and ast_impl_magic_number = "Caml1999M019"
 and ast_intf_magic_number = "Caml1999N018"
 and cmxs_magic_number = "Caml2007D002"
 and cmt_magic_number = "Caml2012T007"
 
 let load_path = ref ([] : string list)
-
 let interface_suffix = ref ".mli"
-
 let max_tag = 245
+
 (* This is normally the same as in obj.ml, but we have to define it
    separately because it can differ when we're in the middle of a
    bootstrapping phase. *)
 let lazy_tag = 246
-
 let max_young_wosize = 256
 let stack_threshold = 256 (* see byterun/config.h *)
 let stack_safety_margin = 60
-
 let architecture = "amd64"
 let model = "default"
 let system = "macosx"
-
 let asm = "clang -arch x86_64 -c"
 let asm_cfi_supported = true
 let with_frame_pointers = false
-
 let ext_obj = ".o"
 let ext_asm = ".s"
 let ext_lib = ".a"
 let ext_dll = ".so"
-
 let host = "x86_64-apple-darwin18.7.0"
 let target = "x86_64-apple-darwin18.7.0"
 
 let default_executable_name =
   match Sys.os_type with
-    "Unix" -> "a.out"
+  | "Unix" -> "a.out"
   | "Win32" | "Cygwin" -> "camlprog.exe"
   | _ -> "camlprog"
 
-let systhread_supported = true;;
+let systhread_supported = true
 
 let print_config oc =
   let p name valu = Printf.fprintf oc "%s: %s\n" name valu in
@@ -169,5 +171,4 @@ let print_config oc =
   p "cmxs_magic_number" cmxs_magic_number;
   p "cmt_magic_number" cmt_magic_number;
 
-  flush oc;
-;;
+  flush oc

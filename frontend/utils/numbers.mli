@@ -19,8 +19,8 @@
 module Int : sig
   include Identifiable.S with type t = int
 
-  (** [zero_to_n n] is the set of numbers \{0, ..., n\} (inclusive). *)
   val zero_to_n : int -> Set.t
+  (** [zero_to_n n] is the set of numbers \{0, ..., n\} (inclusive). *)
 end
 
 module Float : Identifiable.S with type t = float

@@ -1,4 +1,3 @@
 (library
  (name translate)
- (libraries utils language frontend inference)
-)
+ (libraries utils language frontend inference))

@@ -22,8 +22,6 @@ open Typedtree
    integrated in Typerex).
 *)
 
-
-
 let read_magic_number ic =
   let len_magic_number = String.length Config.cmt_magic_number in
   really_input_string ic len_magic_number
@@ -36,14 +34,14 @@ type binary_annots =
   | Partial_interface of binary_part array
 
 and binary_part =
-| Partial_structure of structure
-| Partial_structure_item of structure_item
-| Partial_expression of expression
-| Partial_pattern of pattern
-| Partial_class_expr of class_expr
-| Partial_signature of signature
-| Partial_signature_item of signature_item
-| Partial_module_type of module_type
+  | Partial_structure of structure
+  | Partial_structure_item of structure_item
+  | Partial_expression of expression
+  | Partial_pattern of pattern
+  | Partial_class_expr of class_expr
+  | Partial_signature of signature
+  | Partial_signature_item of signature_item
+  | Partial_module_type of module_type
 
 type cmt_infos = {
   cmt_modname : string;
@@ -62,11 +60,12 @@ type cmt_infos = {
   cmt_use_summaries : bool;
 }
 
-type error =
-    Not_a_typedtree of string
+type error = Not_a_typedtree of string
 
 let need_to_clear_env =
-  try ignore (Sys.getenv "OCAML_BINANNOT_WITHENV"); false
+  try
+    ignore (Sys.getenv "OCAML_BINANNOT_WITHENV");
+    false
   with Not_found -> true
 
 let keep_only_summary = Env.keep_only_summary
@@ -74,7 +73,7 @@ let keep_only_summary = Env.keep_only_summary
 open Tast_mapper
 
 let cenv =
-  {Tast_mapper.default with env = fun _sub env -> keep_only_summary env}
+  { Tast_mapper.default with env = (fun _sub env -> keep_only_summary env) }
 
 let clear_part = function
   | Partial_structure s -> Partial_structure (cenv.structure cenv s)
@@ -96,58 +95,54 @@ let clear_env binary_annots =
     | Packed _ -> binary_annots
     | Partial_implementation array ->
         Partial_implementation (Array.map clear_part array)
-    | Partial_interface array ->
-        Partial_interface (Array.map clear_part array)
-
+    | Partial_interface array -> Partial_interface (Array.map clear_part array)
   else binary_annots
 
 exception Error of error
 
-let input_cmt ic = (input_value ic : cmt_infos)
+let input_cmt ic : cmt_infos = input_value ic
 
 let output_cmt oc cmt =
   output_string oc Config.cmt_magic_number;
   output_value oc (cmt : cmt_infos)
 
 let read filename =
-(*  Printf.fprintf stderr "Cmt_format.read %s\n%!" filename; *)
+  (*  Printf.fprintf stderr "Cmt_format.read %s\n%!" filename; *)
   let ic = open_in_bin filename in
   try
     let magic_number = read_magic_number ic in
     let cmi, cmt =
-      if magic_number = Config.cmt_magic_number then
-        None, Some (input_cmt ic)
+      if magic_number = Config.cmt_magic_number then (None, Some (input_cmt ic))
       else if magic_number = Config.cmi_magic_number then
         let cmi = Cmi_format.input_cmi ic in
-        let cmt = try
-                    let magic_number = read_magic_number ic in
-                    if magic_number = Config.cmt_magic_number then
-                      let cmt = input_cmt ic in
-                      Some cmt
-                    else None
+        let cmt =
+          try
+            let magic_number = read_magic_number ic in
+            if magic_number = Config.cmt_magic_number then
+              let cmt = input_cmt ic in
+              Some cmt
+            else None
           with _ -> None
         in
-        Some cmi, cmt
-      else
-        raise(Cmi_format.Error(Cmi_format.Not_an_interface filename))
+        (Some cmi, cmt)
+      else raise (Cmi_format.Error (Cmi_format.Not_an_interface filename))
     in
     close_in ic;
-(*    Printf.fprintf stderr "Cmt_format.read done\n%!"; *)
-    cmi, cmt
+    (*    Printf.fprintf stderr "Cmt_format.read done\n%!"; *)
+    (cmi, cmt)
   with e ->
     close_in ic;
     raise e
 
 let read_cmt filename =
   match read filename with
-      _, None -> raise (Error (Not_a_typedtree filename))
-    | _, Some cmt -> cmt
+  | _, None -> raise (Error (Not_a_typedtree filename))
+  | _, Some cmt -> cmt
 
 let read_cmi filename =
   match read filename with
-      None, _ ->
-        raise (Cmi_format.Error (Cmi_format.Not_an_interface filename))
-    | Some cmi, _ -> cmi
+  | None, _ -> raise (Cmi_format.Error (Cmi_format.Not_an_interface filename))
+  | Some cmi, _ -> cmi
 
 let saved_types = ref []
 let value_deps = ref []
@@ -165,45 +160,50 @@ let record_value_dependency vd1 vd2 =
     value_deps := (vd1, vd2) :: !value_deps
 
 let save_cmt filename modname binary_annots sourcefile initial_env sg =
-  if !Clflags.binary_annotations && not !Clflags.print_types then begin
+  if !Clflags.binary_annotations && not !Clflags.print_types then (
     let imports = Env.imports () in
     let flags =
-      List.concat [
-        if !Clflags.recursive_types then [Cmi_format.Rectypes] else [];
-        if !Clflags.opaque then [Cmi_format.Opaque] else [];
+      List.concat
+        [
+          (if !Clflags.recursive_types then [ Cmi_format.Rectypes ] else []);
+          (if !Clflags.opaque then [ Cmi_format.Opaque ] else []);
         ]
     in
     let oc = open_out_bin filename in
     let this_crc =
       match sg with
-          None -> None
-        | Some (sg) ->
-          let cmi = {
-            cmi_name = modname;
-            cmi_sign = sg;
-            cmi_flags = flags;
-            cmi_crcs = imports;
-          } in
+      | None -> None
+      | Some sg ->
+          let cmi =
+            {
+              cmi_name = modname;
+              cmi_sign = sg;
+              cmi_flags = flags;
+              cmi_crcs = imports;
+            }
+          in
           Some (output_cmi filename oc cmi)
     in
     let source_digest = Misc.may_map Digest.file sourcefile in
-    let cmt = {
-      cmt_modname = modname;
-      cmt_annots = clear_env binary_annots;
-      cmt_value_dependencies = !value_deps;
-      cmt_comments = Lexer.comments ();
-      cmt_args = Sys.argv;
-      cmt_sourcefile = sourcefile;
-      cmt_builddir =  Sys.getcwd ();
-      cmt_loadpath = !Config.load_path;
-      cmt_source_digest = source_digest;
-      cmt_initial_env = if need_to_clear_env then
-          keep_only_summary initial_env else initial_env;
-      cmt_imports = List.sort compare imports;
-      cmt_interface_digest = this_crc;
-      cmt_use_summaries = need_to_clear_env;
-    } in
+    let cmt =
+      {
+        cmt_modname = modname;
+        cmt_annots = clear_env binary_annots;
+        cmt_value_dependencies = !value_deps;
+        cmt_comments = Lexer.comments ();
+        cmt_args = Sys.argv;
+        cmt_sourcefile = sourcefile;
+        cmt_builddir = Sys.getcwd ();
+        cmt_loadpath = !Config.load_path;
+        cmt_source_digest = source_digest;
+        cmt_initial_env =
+          (if need_to_clear_env then keep_only_summary initial_env
+           else initial_env);
+        cmt_imports = List.sort compare imports;
+        cmt_interface_digest = this_crc;
+        cmt_use_summaries = need_to_clear_env;
+      }
+    in
     output_cmt oc cmt;
-    close_out oc;
-  end;
+    close_out oc);
   clear ()

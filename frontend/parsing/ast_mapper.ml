@@ -20,56 +20,55 @@
   (* Ensure that record patterns don't miss any field. *)
 *)
 
-
 open Parsetree
 open Ast_helper
 open Location
 
 type mapper = {
-  attribute: mapper -> attribute -> attribute;
-  attributes: mapper -> attribute list -> attribute list;
-  case: mapper -> case -> case;
-  cases: mapper -> case list -> case list;
-  class_declaration: mapper -> class_declaration -> class_declaration;
-  class_description: mapper -> class_description -> class_description;
-  class_expr: mapper -> class_expr -> class_expr;
-  class_field: mapper -> class_field -> class_field;
-  class_signature: mapper -> class_signature -> class_signature;
-  class_structure: mapper -> class_structure -> class_structure;
-  class_type: mapper -> class_type -> class_type;
-  class_type_declaration: mapper -> class_type_declaration
-                          -> class_type_declaration;
-  class_type_field: mapper -> class_type_field -> class_type_field;
-  constructor_declaration: mapper -> constructor_declaration
-                           -> constructor_declaration;
-  expr: mapper -> expression -> expression;
-  extension: mapper -> extension -> extension;
-  extension_constructor: mapper -> extension_constructor
-                         -> extension_constructor;
-  include_declaration: mapper -> include_declaration -> include_declaration;
-  include_description: mapper -> include_description -> include_description;
-  label_declaration: mapper -> label_declaration -> label_declaration;
-  location: mapper -> Location.t -> Location.t;
-  module_binding: mapper -> module_binding -> module_binding;
-  module_declaration: mapper -> module_declaration -> module_declaration;
-  module_expr: mapper -> module_expr -> module_expr;
-  module_type: mapper -> module_type -> module_type;
-  module_type_declaration: mapper -> module_type_declaration
-                           -> module_type_declaration;
-  open_description: mapper -> open_description -> open_description;
-  pat: mapper -> pattern -> pattern;
-  payload: mapper -> payload -> payload;
-  signature: mapper -> signature -> signature;
-  signature_item: mapper -> signature_item -> signature_item;
-  structure: mapper -> structure -> structure;
-  structure_item: mapper -> structure_item -> structure_item;
-  typ: mapper -> core_type -> core_type;
-  type_declaration: mapper -> type_declaration -> type_declaration;
-  type_extension: mapper -> type_extension -> type_extension;
-  type_kind: mapper -> type_kind -> type_kind;
-  value_binding: mapper -> value_binding -> value_binding;
-  value_description: mapper -> value_description -> value_description;
-  with_constraint: mapper -> with_constraint -> with_constraint;
+  attribute : mapper -> attribute -> attribute;
+  attributes : mapper -> attribute list -> attribute list;
+  case : mapper -> case -> case;
+  cases : mapper -> case list -> case list;
+  class_declaration : mapper -> class_declaration -> class_declaration;
+  class_description : mapper -> class_description -> class_description;
+  class_expr : mapper -> class_expr -> class_expr;
+  class_field : mapper -> class_field -> class_field;
+  class_signature : mapper -> class_signature -> class_signature;
+  class_structure : mapper -> class_structure -> class_structure;
+  class_type : mapper -> class_type -> class_type;
+  class_type_declaration :
+    mapper -> class_type_declaration -> class_type_declaration;
+  class_type_field : mapper -> class_type_field -> class_type_field;
+  constructor_declaration :
+    mapper -> constructor_declaration -> constructor_declaration;
+  expr : mapper -> expression -> expression;
+  extension : mapper -> extension -> extension;
+  extension_constructor :
+    mapper -> extension_constructor -> extension_constructor;
+  include_declaration : mapper -> include_declaration -> include_declaration;
+  include_description : mapper -> include_description -> include_description;
+  label_declaration : mapper -> label_declaration -> label_declaration;
+  location : mapper -> Location.t -> Location.t;
+  module_binding : mapper -> module_binding -> module_binding;
+  module_declaration : mapper -> module_declaration -> module_declaration;
+  module_expr : mapper -> module_expr -> module_expr;
+  module_type : mapper -> module_type -> module_type;
+  module_type_declaration :
+    mapper -> module_type_declaration -> module_type_declaration;
+  open_description : mapper -> open_description -> open_description;
+  pat : mapper -> pattern -> pattern;
+  payload : mapper -> payload -> payload;
+  signature : mapper -> signature -> signature;
+  signature_item : mapper -> signature_item -> signature_item;
+  structure : mapper -> structure -> structure;
+  structure_item : mapper -> structure_item -> structure_item;
+  typ : mapper -> core_type -> core_type;
+  type_declaration : mapper -> type_declaration -> type_declaration;
+  type_extension : mapper -> type_extension -> type_extension;
+  type_kind : mapper -> type_kind -> type_kind;
+  value_binding : mapper -> value_binding -> value_binding;
+  value_description : mapper -> value_description -> value_description;
+  with_constraint : mapper -> with_constraint -> with_constraint;
 }
 
 let map_fst f (x, y) = (f x, y)
@@ -77,8 +76,7 @@ let map_snd f (x, y) = (x, f y)
 let map_tuple f1 f2 (x, y) = (f1 x, f2 y)
 let map_tuple3 f1 f2 f3 (x, y, z) = (f1 x, f2 y, f3 z)
 let map_opt f = function None -> None | Some x -> Some (f x)
-
-let map_loc sub {loc; txt} = {loc = sub.location sub loc; txt}
+let map_loc sub { loc; txt } = { loc = sub.location sub loc; txt }
 
 module T = struct
   (* Type expressions for the core language *)
@@ -88,7 +86,7 @@ module T = struct
         Rtag (l, sub.attributes sub attrs, b, List.map (sub.typ sub) tl)
     | Rinherit t -> Rinherit (sub.typ sub t)
 
-  let map sub {ptyp_desc = desc; ptyp_loc = loc; ptyp_attributes = attrs} =
+  let map sub { ptyp_desc = desc; ptyp_loc = loc; ptyp_attributes = attrs } =
     let open Typ in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -115,18 +113,23 @@ module T = struct
     | Ptyp_extension x -> extension ~loc ~attrs (sub.extension sub x)
 
   let map_type_declaration sub
-      {ptype_name; ptype_params; ptype_cstrs;
-       ptype_kind;
-       ptype_private;
-       ptype_manifest;
-       ptype_attributes;
-       ptype_loc} =
+      {
+        ptype_name;
+        ptype_params;
+        ptype_cstrs;
+        ptype_kind;
+        ptype_private;
+        ptype_manifest;
+        ptype_attributes;
+        ptype_loc;
+      } =
     Type.mk (map_loc sub ptype_name)
       ~params:(List.map (map_fst (sub.typ sub)) ptype_params)
       ~priv:ptype_private
-      ~cstrs:(List.map
-                (map_tuple3 (sub.typ sub) (sub.typ sub) (sub.location sub))
-                ptype_cstrs)
+      ~cstrs:
+        (List.map
+           (map_tuple3 (sub.typ sub) (sub.typ sub) (sub.location sub))
+           ptype_cstrs)
       ~kind:(sub.type_kind sub ptype_kind)
       ?manifest:(map_opt (sub.typ sub) ptype_manifest)
       ~loc:(sub.location sub ptype_loc)
@@ -141,44 +144,39 @@ module T = struct
 
   let map_constructor_arguments sub = function
     | Pcstr_tuple l -> Pcstr_tuple (List.map (sub.typ sub) l)
-    | Pcstr_record l ->
-        Pcstr_record (List.map (sub.label_declaration sub) l)
+    | Pcstr_record l -> Pcstr_record (List.map (sub.label_declaration sub) l)
 
   let map_type_extension sub
-      {ptyext_path; ptyext_params;
-       ptyext_constructors;
-       ptyext_private;
-       ptyext_attributes} =
-    Te.mk
-      (map_loc sub ptyext_path)
+      {
+        ptyext_path;
+        ptyext_params;
+        ptyext_constructors;
+        ptyext_private;
+        ptyext_attributes;
+      } =
+    Te.mk (map_loc sub ptyext_path)
       (List.map (sub.extension_constructor sub) ptyext_constructors)
       ~params:(List.map (map_fst (sub.typ sub)) ptyext_params)
       ~priv:ptyext_private
       ~attrs:(sub.attributes sub ptyext_attributes)
 
   let map_extension_constructor_kind sub = function
-      Pext_decl(ctl, cto) ->
-        Pext_decl(map_constructor_arguments sub ctl, map_opt (sub.typ sub) cto)
-    | Pext_rebind li ->
-        Pext_rebind (map_loc sub li)
+    | Pext_decl (ctl, cto) ->
+        Pext_decl (map_constructor_arguments sub ctl, map_opt (sub.typ sub) cto)
+    | Pext_rebind li -> Pext_rebind (map_loc sub li)
 
   let map_extension_constructor sub
-      {pext_name;
-       pext_kind;
-       pext_loc;
-       pext_attributes} =
-    Te.constructor
-      (map_loc sub pext_name)
+      { pext_name; pext_kind; pext_loc; pext_attributes } =
+    Te.constructor (map_loc sub pext_name)
       (map_extension_constructor_kind sub pext_kind)
       ~loc:(sub.location sub pext_loc)
       ~attrs:(sub.attributes sub pext_attributes)
-
 end
 
 module CT = struct
   (* Type expressions for the class language *)
 
-  let map sub {pcty_loc = loc; pcty_desc = desc; pcty_attributes = attrs} =
+  let map sub { pcty_loc = loc; pcty_desc = desc; pcty_attributes = attrs } =
     let open Cty in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -190,8 +188,8 @@ module CT = struct
         arrow ~loc ~attrs lab (sub.typ sub t) (sub.class_type sub ct)
     | Pcty_extension x -> extension ~loc ~attrs (sub.extension sub x)
 
-  let map_field sub {pctf_desc = desc; pctf_loc = loc; pctf_attributes = attrs}
-    =
+  let map_field sub
+      { pctf_desc = desc; pctf_loc = loc; pctf_attributes = attrs } =
     let open Ctf in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -204,16 +202,15 @@ module CT = struct
     | Pctf_attribute x -> attribute ~loc (sub.attribute sub x)
     | Pctf_extension x -> extension ~loc ~attrs (sub.extension sub x)
 
-  let map_signature sub {pcsig_self; pcsig_fields} =
-    Csig.mk
-      (sub.typ sub pcsig_self)
+  let map_signature sub { pcsig_self; pcsig_fields } =
+    Csig.mk (sub.typ sub pcsig_self)
       (List.map (sub.class_type_field sub) pcsig_fields)
 end
 
 module MT = struct
   (* Type expressions for the module language *)
 
-  let map sub {pmty_desc = desc; pmty_loc = loc; pmty_attributes = attrs} =
+  let map sub { pmty_desc = desc; pmty_loc = loc; pmty_attributes = attrs } =
     let open Mty in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -237,10 +234,9 @@ module MT = struct
     | Pwith_module (lid, lid2) ->
         Pwith_module (map_loc sub lid, map_loc sub lid2)
     | Pwith_typesubst d -> Pwith_typesubst (sub.type_declaration sub d)
-    | Pwith_modsubst (s, lid) ->
-        Pwith_modsubst (map_loc sub s, map_loc sub lid)
+    | Pwith_modsubst (s, lid) -> Pwith_modsubst (map_loc sub s, map_loc sub lid)
 
-  let map_signature_item sub {psig_desc = desc; psig_loc = loc} =
+  let map_signature_item sub { psig_desc = desc; psig_loc = loc } =
     let open Sig in
     let loc = sub.location sub loc in
     match desc with
@@ -262,11 +258,10 @@ module MT = struct
     | Psig_attribute x -> attribute ~loc (sub.attribute sub x)
 end
 
-
 module M = struct
   (* Value expressions for the module language *)
 
-  let map sub {pmod_loc = loc; pmod_desc = desc; pmod_attributes = attrs} =
+  let map sub { pmod_loc = loc; pmod_desc = desc; pmod_attributes = attrs } =
     let open Mod in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -281,11 +276,11 @@ module M = struct
         apply ~loc ~attrs (sub.module_expr sub m1) (sub.module_expr sub m2)
     | Pmod_constraint (m, mty) ->
         constraint_ ~loc ~attrs (sub.module_expr sub m)
-                    (sub.module_type sub mty)
+          (sub.module_type sub mty)
     | Pmod_unpack e -> unpack ~loc ~attrs (sub.expr sub e)
     | Pmod_extension x -> extension ~loc ~attrs (sub.extension sub x)
 
-  let map_structure_item sub {pstr_loc = loc; pstr_desc = desc} =
+  let map_structure_item sub { pstr_loc = loc; pstr_desc = desc } =
     let open Str in
     let loc = sub.location sub loc in
     match desc with
@@ -312,7 +307,7 @@ end
 module E = struct
   (* Value expressions for the core language *)
 
-  let map sub {pexp_loc = loc; pexp_desc = desc; pexp_attributes = attrs} =
+  let map sub { pexp_loc = loc; pexp_desc = desc; pexp_attributes = attrs } =
     let open Exp in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -320,11 +315,13 @@ module E = struct
     | Pexp_ident x -> ident ~loc ~attrs (map_loc sub x)
     | Pexp_constant x -> constant ~loc ~attrs x
     | Pexp_let (r, vbs, e) ->
-        let_ ~loc ~attrs r (List.map (sub.value_binding sub) vbs)
+        let_ ~loc ~attrs r
+          (List.map (sub.value_binding sub) vbs)
           (sub.expr sub e)
     | Pexp_fun (lab, def, p, e) ->
-        fun_ ~loc ~attrs lab (map_opt (sub.expr sub) def) (sub.pat sub p)
-          (sub.expr sub e)
+        fun_ ~loc ~attrs lab
+          (map_opt (sub.expr sub) def)
+          (sub.pat sub p) (sub.expr sub e)
     | Pexp_function pel -> function_ ~loc ~attrs (sub.cases sub pel)
     | Pexp_apply (e, l) ->
         apply ~loc ~attrs (sub.expr sub e) (List.map (map_snd (sub.expr sub)) l)
@@ -337,7 +334,8 @@ module E = struct
     | Pexp_variant (lab, eo) ->
         variant ~loc ~attrs lab (map_opt (sub.expr sub) eo)
     | Pexp_record (l, eo) ->
-        record ~loc ~attrs (List.map (map_tuple (map_loc sub) (sub.expr sub)) l)
+        record ~loc ~attrs
+          (List.map (map_tuple (map_loc sub) (sub.expr sub)) l)
           (map_opt (sub.expr sub) eo)
     | Pexp_field (e, lid) ->
         field ~loc ~attrs (sub.expr sub e) (map_loc sub lid)
@@ -356,7 +354,8 @@ module E = struct
         for_ ~loc ~attrs (sub.pat sub p) (sub.expr sub e1) (sub.expr sub e2) d
           (sub.expr sub e3)
     | Pexp_coerce (e, t1, t2) ->
-        coerce ~loc ~attrs (sub.expr sub e) (map_opt (sub.typ sub) t1)
+        coerce ~loc ~attrs (sub.expr sub e)
+          (map_opt (sub.typ sub) t1)
           (sub.typ sub t2)
     | Pexp_constraint (e, t) ->
         constraint_ ~loc ~attrs (sub.expr sub e) (sub.typ sub t)
@@ -386,7 +385,7 @@ end
 module P = struct
   (* Patterns *)
 
-  let map sub {ppat_desc = desc; ppat_loc = loc; ppat_attributes = attrs} =
+  let map sub { ppat_desc = desc; ppat_loc = loc; ppat_attributes = attrs } =
     let open Pat in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -402,7 +401,8 @@ module P = struct
     | Ppat_variant (l, p) -> variant ~loc ~attrs l (map_opt (sub.pat sub) p)
     | Ppat_record (lpl, cf) ->
         record ~loc ~attrs
-               (List.map (map_tuple (map_loc sub) (sub.pat sub)) lpl) cf
+          (List.map (map_tuple (map_loc sub) (sub.pat sub)) lpl)
+          cf
     | Ppat_array pl -> array ~loc ~attrs (List.map (sub.pat sub) pl)
     | Ppat_or (p1, p2) -> or_ ~loc ~attrs (sub.pat sub p1) (sub.pat sub p2)
     | Ppat_constraint (p, t) ->
@@ -417,25 +417,24 @@ end
 module CE = struct
   (* Value expressions for the class language *)
 
-  let map sub {pcl_loc = loc; pcl_desc = desc; pcl_attributes = attrs} =
+  let map sub { pcl_loc = loc; pcl_desc = desc; pcl_attributes = attrs } =
     let open Cl in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
     match desc with
     | Pcl_constr (lid, tys) ->
         constr ~loc ~attrs (map_loc sub lid) (List.map (sub.typ sub) tys)
-    | Pcl_structure s ->
-        structure ~loc ~attrs (sub.class_structure sub s)
+    | Pcl_structure s -> structure ~loc ~attrs (sub.class_structure sub s)
     | Pcl_fun (lab, e, p, ce) ->
         fun_ ~loc ~attrs lab
           (map_opt (sub.expr sub) e)
-          (sub.pat sub p)
-          (sub.class_expr sub ce)
+          (sub.pat sub p) (sub.class_expr sub ce)
     | Pcl_apply (ce, l) ->
         apply ~loc ~attrs (sub.class_expr sub ce)
           (List.map (map_snd (sub.expr sub)) l)
     | Pcl_let (r, vbs, ce) ->
-        let_ ~loc ~attrs r (List.map (sub.value_binding sub) vbs)
+        let_ ~loc ~attrs r
+          (List.map (sub.value_binding sub) vbs)
           (sub.class_expr sub ce)
     | Pcl_constraint (ce, ct) ->
         constraint_ ~loc ~attrs (sub.class_expr sub ce) (sub.class_type sub ct)
@@ -445,7 +444,7 @@ module CE = struct
     | Cfk_concrete (o, e) -> Cfk_concrete (o, sub.expr sub e)
     | Cfk_virtual t -> Cfk_virtual (sub.typ sub t)
 
-  let map_field sub {pcf_desc = desc; pcf_loc = loc; pcf_attributes = attrs} =
+  let map_field sub { pcf_desc = desc; pcf_loc = loc; pcf_attributes = attrs } =
     let open Cf in
     let loc = sub.location sub loc in
     let attrs = sub.attributes sub attrs in
@@ -460,20 +459,18 @@ module CE = struct
     | Pcf_attribute x -> attribute ~loc (sub.attribute sub x)
     | Pcf_extension x -> extension ~loc ~attrs (sub.extension sub x)
 
-  let map_structure sub {pcstr_self; pcstr_fields} =
+  let map_structure sub { pcstr_self; pcstr_fields } =
     {
       pcstr_self = sub.pat sub pcstr_self;
       pcstr_fields = List.map (sub.class_field sub) pcstr_fields;
     }
 
-  let class_infos sub f {pci_virt; pci_params = pl; pci_name; pci_expr;
-                         pci_loc; pci_attributes} =
-    Ci.mk
-     ~virt:pci_virt
-     ~params:(List.map (map_fst (sub.typ sub)) pl)
-      (map_loc sub pci_name)
-      (f pci_expr)
-      ~loc:(sub.location sub pci_loc)
+  let class_infos sub f
+      { pci_virt; pci_params = pl; pci_name; pci_expr; pci_loc; pci_attributes }
+      =
+    Ci.mk ~virt:pci_virt
+      ~params:(List.map (map_fst (sub.typ sub)) pl)
+      (map_loc sub pci_name) (f pci_expr) ~loc:(sub.location sub pci_loc)
       ~attrs:(sub.attributes sub pci_attributes)
 end
 
@@ -490,8 +487,7 @@ let default_mapper =
     signature_item = MT.map_signature_item;
     module_type = MT.map;
     with_constraint = MT.map_with_constraint;
-    class_declaration =
-      (fun this -> CE.class_infos this (this.class_expr this));
+    class_declaration = (fun this -> CE.class_infos this (this.class_expr this));
     class_expr = CE.map;
     class_field = CE.map_field;
     class_structure = CE.map_structure;
@@ -500,161 +496,117 @@ let default_mapper =
     class_signature = CT.map_signature;
     class_type_declaration =
       (fun this -> CE.class_infos this (this.class_type this));
-    class_description =
-      (fun this -> CE.class_infos this (this.class_type this));
+    class_description = (fun this -> CE.class_infos this (this.class_type this));
     type_declaration = T.map_type_declaration;
     type_kind = T.map_type_kind;
     typ = T.map;
     type_extension = T.map_type_extension;
     extension_constructor = T.map_extension_constructor;
     value_description =
-      (fun this {pval_name; pval_type; pval_prim; pval_loc;
-                 pval_attributes} ->
-        Val.mk
-          (map_loc this pval_name)
-          (this.typ this pval_type)
+      (fun this { pval_name; pval_type; pval_prim; pval_loc; pval_attributes } ->
+        Val.mk (map_loc this pval_name) (this.typ this pval_type)
           ~attrs:(this.attributes this pval_attributes)
           ~loc:(this.location this pval_loc)
-          ~prim:pval_prim
-      );
-
+          ~prim:pval_prim);
     pat = P.map;
     expr = E.map;
-
     module_declaration =
-      (fun this {pmd_name; pmd_type; pmd_attributes; pmd_loc} ->
-         Md.mk
-           (map_loc this pmd_name)
-           (this.module_type this pmd_type)
-           ~attrs:(this.attributes this pmd_attributes)
-           ~loc:(this.location this pmd_loc)
-      );
-
+      (fun this { pmd_name; pmd_type; pmd_attributes; pmd_loc } ->
+        Md.mk (map_loc this pmd_name)
+          (this.module_type this pmd_type)
+          ~attrs:(this.attributes this pmd_attributes)
+          ~loc:(this.location this pmd_loc));
     module_type_declaration =
-      (fun this {pmtd_name; pmtd_type; pmtd_attributes; pmtd_loc} ->
-         Mtd.mk
-           (map_loc this pmtd_name)
-           ?typ:(map_opt (this.module_type this) pmtd_type)
-           ~attrs:(this.attributes this pmtd_attributes)
-           ~loc:(this.location this pmtd_loc)
-      );
-
+      (fun this { pmtd_name; pmtd_type; pmtd_attributes; pmtd_loc } ->
+        Mtd.mk (map_loc this pmtd_name)
+          ?typ:(map_opt (this.module_type this) pmtd_type)
+          ~attrs:(this.attributes this pmtd_attributes)
+          ~loc:(this.location this pmtd_loc));
     module_binding =
-      (fun this {pmb_name; pmb_expr; pmb_attributes; pmb_loc} ->
-         Mb.mk (map_loc this pmb_name) (this.module_expr this pmb_expr)
-           ~attrs:(this.attributes this pmb_attributes)
-           ~loc:(this.location this pmb_loc)
-      );
-
-
+      (fun this { pmb_name; pmb_expr; pmb_attributes; pmb_loc } ->
+        Mb.mk (map_loc this pmb_name)
+          (this.module_expr this pmb_expr)
+          ~attrs:(this.attributes this pmb_attributes)
+          ~loc:(this.location this pmb_loc));
     open_description =
-      (fun this {popen_lid; popen_override; popen_attributes; popen_loc} ->
-         Opn.mk (map_loc this popen_lid)
-           ~override:popen_override
-           ~loc:(this.location this popen_loc)
-           ~attrs:(this.attributes this popen_attributes)
-      );
-
-
+      (fun this { popen_lid; popen_override; popen_attributes; popen_loc } ->
+        Opn.mk (map_loc this popen_lid) ~override:popen_override
+          ~loc:(this.location this popen_loc)
+          ~attrs:(this.attributes this popen_attributes));
     include_description =
-      (fun this {pincl_mod; pincl_attributes; pincl_loc} ->
-         Incl.mk (this.module_type this pincl_mod)
-           ~loc:(this.location this pincl_loc)
-           ~attrs:(this.attributes this pincl_attributes)
-      );
-
+      (fun this { pincl_mod; pincl_attributes; pincl_loc } ->
+        Incl.mk
+          (this.module_type this pincl_mod)
+          ~loc:(this.location this pincl_loc)
+          ~attrs:(this.attributes this pincl_attributes));
     include_declaration =
-      (fun this {pincl_mod; pincl_attributes; pincl_loc} ->
-         Incl.mk (this.module_expr this pincl_mod)
-           ~loc:(this.location this pincl_loc)
-           ~attrs:(this.attributes this pincl_attributes)
-      );
-
-
+      (fun this { pincl_mod; pincl_attributes; pincl_loc } ->
+        Incl.mk
+          (this.module_expr this pincl_mod)
+          ~loc:(this.location this pincl_loc)
+          ~attrs:(this.attributes this pincl_attributes));
     value_binding =
-      (fun this {pvb_pat; pvb_expr; pvb_attributes; pvb_loc} ->
-         Vb.mk
-           (this.pat this pvb_pat)
-           (this.expr this pvb_expr)
-           ~loc:(this.location this pvb_loc)
-           ~attrs:(this.attributes this pvb_attributes)
-      );
-
-
+      (fun this { pvb_pat; pvb_expr; pvb_attributes; pvb_loc } ->
+        Vb.mk (this.pat this pvb_pat) (this.expr this pvb_expr)
+          ~loc:(this.location this pvb_loc)
+          ~attrs:(this.attributes this pvb_attributes));
     constructor_declaration =
-      (fun this {pcd_name; pcd_args; pcd_res; pcd_loc; pcd_attributes} ->
-        Type.constructor
-          (map_loc this pcd_name)
+      (fun this { pcd_name; pcd_args; pcd_res; pcd_loc; pcd_attributes } ->
+        Type.constructor (map_loc this pcd_name)
           ~args:(T.map_constructor_arguments this pcd_args)
           ?res:(map_opt (this.typ this) pcd_res)
           ~loc:(this.location this pcd_loc)
-          ~attrs:(this.attributes this pcd_attributes)
-      );
-
+          ~attrs:(this.attributes this pcd_attributes));
     label_declaration =
-      (fun this {pld_name; pld_type; pld_loc; pld_mutable; pld_attributes} ->
-         Type.field
-           (map_loc this pld_name)
-           (this.typ this pld_type)
-           ~mut:pld_mutable
-           ~loc:(this.location this pld_loc)
-           ~attrs:(this.attributes this pld_attributes)
-      );
-
+      (fun this { pld_name; pld_type; pld_loc; pld_mutable; pld_attributes } ->
+        Type.field (map_loc this pld_name) (this.typ this pld_type)
+          ~mut:pld_mutable
+          ~loc:(this.location this pld_loc)
+          ~attrs:(this.attributes this pld_attributes));
     cases = (fun this l -> List.map (this.case this) l);
     case =
-      (fun this {pc_lhs; pc_guard; pc_rhs} ->
-         {
-           pc_lhs = this.pat this pc_lhs;
-           pc_guard = map_opt (this.expr this) pc_guard;
-           pc_rhs = this.expr this pc_rhs;
-         }
-      );
-
-
-
+      (fun this { pc_lhs; pc_guard; pc_rhs } ->
+        {
+          pc_lhs = this.pat this pc_lhs;
+          pc_guard = map_opt (this.expr this) pc_guard;
+          pc_rhs = this.expr this pc_rhs;
+        });
     location = (fun this l -> l);
-
     extension = (fun this (s, e) -> (map_loc this s, this.payload this e));
     attribute = (fun this (s, e) -> (map_loc this s, this.payload this e));
     attributes = (fun this l -> List.map (this.attribute this) l);
     payload =
       (fun this -> function
-         | PStr x -> PStr (this.structure this x)
-         | PSig x -> PSig (this.signature this x)
-         | PTyp x -> PTyp (this.typ this x)
-         | PPat (x, g) -> PPat (this.pat this x, map_opt (this.expr this) g)
-      );
+        | PStr x -> PStr (this.structure this x)
+        | PSig x -> PSig (this.signature this x)
+        | PTyp x -> PTyp (this.typ this x)
+        | PPat (x, g) -> PPat (this.pat this x, map_opt (this.expr this) g));
   }
 
-let rec extension_of_error {loc; msg; if_highlight; sub} =
-  { loc; txt = "ocaml.error" },
-  PStr ([Str.eval (Exp.constant (Pconst_string (msg, None)));
-         Str.eval (Exp.constant (Pconst_string (if_highlight, None)))] @
-        (List.map (fun ext -> Str.extension (extension_of_error ext)) sub))
+let rec extension_of_error { loc; msg; if_highlight; sub } =
+  ( { loc; txt = "ocaml.error" },
+    PStr
+      ([
+         Str.eval (Exp.constant (Pconst_string (msg, None)));
+         Str.eval (Exp.constant (Pconst_string (if_highlight, None)));
+       ]
+      @ List.map (fun ext -> Str.extension (extension_of_error ext)) sub) )
 
 let attribute_of_warning loc s =
-  { loc; txt = "ocaml.ppwarning" },
-  PStr ([Str.eval ~loc (Exp.constant (Pconst_string (s, None)))])
+  ( { loc; txt = "ocaml.ppwarning" },
+    PStr [ Str.eval ~loc (Exp.constant (Pconst_string (s, None))) ] )
 
-module StringMap = Map.Make(struct
-    type t = string
-    let compare = compare
+module StringMap = Map.Make (struct
+  type t = string
+
+  let compare = compare
 end)
 
 let cookies = ref StringMap.empty
-
-let get_cookie k =
-  try Some (StringMap.find k !cookies)
-  with Not_found -> None
-
-let set_cookie k v =
-  cookies := StringMap.add k v !cookies
-
+let get_cookie k = try Some (StringMap.find k !cookies) with Not_found -> None
+let set_cookie k v = cookies := StringMap.add k v !cookies
 let tool_name_ref = ref "_none_"
-
 let tool_name () = !tool_name_ref
-
 
 module PpxContext = struct
   open Longident
@@ -662,131 +614,149 @@ module PpxContext = struct
   open Ast_helper
 
   let lid name = { txt = Lident name; loc = Location.none }
-
   let make_string x = Exp.constant (Pconst_string (x, None))
 
   let make_bool x =
-    if x
-    then Exp.construct (lid "true") None
+    if x then Exp.construct (lid "true") None
     else Exp.construct (lid "false") None
 
   let rec make_list f lst =
     match lst with
     | x :: rest ->
-      Exp.construct (lid "::") (Some (Exp.tuple [f x; make_list f rest]))
-    | [] ->
-      Exp.construct (lid "[]") None
+        Exp.construct (lid "::") (Some (Exp.tuple [ f x; make_list f rest ]))
+    | [] -> Exp.construct (lid "[]") None
 
-  let make_pair f1 f2 (x1, x2) =
-    Exp.tuple [f1 x1; f2 x2]
+  let make_pair f1 f2 (x1, x2) = Exp.tuple [ f1 x1; f2 x2 ]
 
   let make_option f opt =
     match opt with
     | Some x -> Exp.construct (lid "Some") (Some (f x))
-    | None   -> Exp.construct (lid "None") None
+    | None -> Exp.construct (lid "None") None
 
   let get_cookies () =
-    lid "cookies",
-    make_list (make_pair make_string (fun x -> x))
-      (StringMap.bindings !cookies)
+    ( lid "cookies",
+      make_list
+        (make_pair make_string (fun x -> x))
+        (StringMap.bindings !cookies) )
 
   let mk fields =
-    { txt = "ocaml.ppx.context"; loc = Location.none },
-    Parsetree.PStr [Str.eval (Exp.record fields None)]
+    ( { txt = "ocaml.ppx.context"; loc = Location.none },
+      Parsetree.PStr [ Str.eval (Exp.record fields None) ] )
 
   let make ~tool_name () =
     let fields =
       [
-        lid "tool_name",    make_string tool_name;
-        lid "include_dirs", make_list make_string !Clflags.include_dirs;
-        lid "load_path",    make_list make_string !Config.load_path;
-        lid "open_modules", make_list make_string !Clflags.open_modules;
-        lid "for_package",  make_option make_string !Clflags.for_package;
-        lid "debug",        make_bool !Clflags.debug;
-        get_cookies ()
+        (lid "tool_name", make_string tool_name);
+        (lid "include_dirs", make_list make_string !Clflags.include_dirs);
+        (lid "load_path", make_list make_string !Config.load_path);
+        (lid "open_modules", make_list make_string !Clflags.open_modules);
+        (lid "for_package", make_option make_string !Clflags.for_package);
+        (lid "debug", make_bool !Clflags.debug);
+        get_cookies ();
       ]
     in
     mk fields
 
   let get_fields = function
-    | PStr [{pstr_desc = Pstr_eval
-                 ({ pexp_desc = Pexp_record (fields, None) }, [])}] ->
+    | PStr
+        [
+          {
+            pstr_desc =
+              Pstr_eval ({ pexp_desc = Pexp_record (fields, None) }, []);
+          };
+        ] ->
         fields
-    | _ ->
-        raise_errorf "Internal error: invalid [@@@ocaml.ppx.context] syntax"
+    | _ -> raise_errorf "Internal error: invalid [@@@ocaml.ppx.context] syntax"
 
   let restore fields =
     let field name payload =
       let rec get_string = function
         | { pexp_desc = Pexp_constant (Pconst_string (str, None)) } -> str
-        | _ -> raise_errorf "Internal error: invalid [@@@ocaml.ppx.context \
-                             { %s }] string syntax" name
+        | _ ->
+            raise_errorf
+              "Internal error: invalid [@@@ocaml.ppx.context { %s }] string \
+               syntax"
+              name
       and get_bool pexp =
         match pexp with
-        | {pexp_desc = Pexp_construct ({txt = Longident.Lident "true"},
-                                       None)} ->
+        | {
+         pexp_desc = Pexp_construct ({ txt = Longident.Lident "true" }, None);
+        } ->
             true
-        | {pexp_desc = Pexp_construct ({txt = Longident.Lident "false"},
-                                       None)} ->
+        | {
+         pexp_desc = Pexp_construct ({ txt = Longident.Lident "false" }, None);
+        } ->
             false
-        | _ -> raise_errorf "Internal error: invalid [@@@ocaml.ppx.context \
-                             { %s }] bool syntax" name
+        | _ ->
+            raise_errorf
+              "Internal error: invalid [@@@ocaml.ppx.context { %s }] bool \
+               syntax"
+              name
       and get_list elem = function
-        | {pexp_desc =
-             Pexp_construct ({txt = Longident.Lident "::"},
-                             Some {pexp_desc = Pexp_tuple [exp; rest]}) } ->
+        | {
+            pexp_desc =
+              Pexp_construct
+                ( { txt = Longident.Lident "::" },
+                  Some { pexp_desc = Pexp_tuple [ exp; rest ] } );
+          } ->
             elem exp :: get_list elem rest
-        | {pexp_desc =
-             Pexp_construct ({txt = Longident.Lident "[]"}, None)} ->
+        | { pexp_desc = Pexp_construct ({ txt = Longident.Lident "[]" }, None) }
+          ->
             []
-        | _ -> raise_errorf "Internal error: invalid [@@@ocaml.ppx.context \
-                             { %s }] list syntax" name
+        | _ ->
+            raise_errorf
+              "Internal error: invalid [@@@ocaml.ppx.context { %s }] list \
+               syntax"
+              name
       and get_pair f1 f2 = function
-        | {pexp_desc = Pexp_tuple [e1; e2]} ->
-            (f1 e1, f2 e2)
-        | _ -> raise_errorf "Internal error: invalid [@@@ocaml.ppx.context \
-                             { %s }] pair syntax" name
+        | { pexp_desc = Pexp_tuple [ e1; e2 ] } -> (f1 e1, f2 e2)
+        | _ ->
+            raise_errorf
+              "Internal error: invalid [@@@ocaml.ppx.context { %s }] pair \
+               syntax"
+              name
       and get_option elem = function
-        | { pexp_desc =
-              Pexp_construct ({ txt = Longident.Lident "Some" }, Some exp) } ->
+        | {
+            pexp_desc =
+              Pexp_construct ({ txt = Longident.Lident "Some" }, Some exp);
+          } ->
             Some (elem exp)
-        | { pexp_desc =
-              Pexp_construct ({ txt = Longident.Lident "None" }, None) } ->
+        | {
+            pexp_desc = Pexp_construct ({ txt = Longident.Lident "None" }, None);
+          } ->
             None
-        | _ -> raise_errorf "Internal error: invalid [@@@ocaml.ppx.context \
-                             { %s }] option syntax" name
+        | _ ->
+            raise_errorf
+              "Internal error: invalid [@@@ocaml.ppx.context { %s }] option \
+               syntax"
+              name
       in
       match name with
-      | "tool_name" ->
-          tool_name_ref := get_string payload
-      | "include_dirs" ->
-          Clflags.include_dirs := get_list get_string payload
-      | "load_path" ->
-          Config.load_path := get_list get_string payload
-      | "open_modules" ->
-          Clflags.open_modules := get_list get_string payload
-      | "for_package" ->
-          Clflags.for_package := get_option get_string payload
-      | "debug" ->
-          Clflags.debug := get_bool payload
+      | "tool_name" -> tool_name_ref := get_string payload
+      | "include_dirs" -> Clflags.include_dirs := get_list get_string payload
+      | "load_path" -> Config.load_path := get_list get_string payload
+      | "open_modules" -> Clflags.open_modules := get_list get_string payload
+      | "for_package" -> Clflags.for_package := get_option get_string payload
+      | "debug" -> Clflags.debug := get_bool payload
       | "cookies" ->
           let l = get_list (get_pair get_string (fun x -> x)) payload in
           cookies :=
             List.fold_left
-              (fun s (k, v) -> StringMap.add k v s) StringMap.empty
-              l
-      | _ ->
-          ()
+              (fun s (k, v) -> StringMap.add k v s)
+              StringMap.empty l
+      | _ -> ()
     in
-    List.iter (function ({txt=Lident name}, x) -> field name x | _ -> ()) fields
+    List.iter
+      (function { txt = Lident name }, x -> field name x | _ -> ())
+      fields
 
   let update_cookies fields =
     let fields =
       List.filter
-        (function ({txt=Lident "cookies"}, _) -> false | _ -> true)
+        (function { txt = Lident "cookies" }, _ -> false | _ -> true)
         fields
     in
-    fields @ [get_cookies ()]
+    fields @ [ get_cookies () ]
 end
 
 let ppx_context = PpxContext.make
@@ -796,14 +766,14 @@ let ext_of_exn exn =
   | Some error -> extension_of_error error
   | None -> raise exn
 
-
 let apply_lazy ~source ~target mapper =
   let implem ast =
     let fields, ast =
       match ast with
-      | {pstr_desc = Pstr_attribute ({txt = "ocaml.ppx.context"}, x)} :: l ->
-          PpxContext.get_fields x, l
-      | _ -> [], ast
+      | { pstr_desc = Pstr_attribute ({ txt = "ocaml.ppx.context" }, x) } :: l
+        ->
+          (PpxContext.get_fields x, l)
+      | _ -> ([], ast)
     in
     PpxContext.restore fields;
     let ast =
@@ -811,8 +781,12 @@ let apply_lazy ~source ~target mapper =
         let mapper = mapper () in
         mapper.structure mapper ast
       with exn ->
-        [{pstr_desc = Pstr_extension (ext_of_exn exn, []);
-          pstr_loc  = Location.none}]
+        [
+          {
+            pstr_desc = Pstr_extension (ext_of_exn exn, []);
+            pstr_loc = Location.none;
+          };
+        ]
     in
     let fields = PpxContext.update_cookies fields in
     Str.attribute (PpxContext.mk fields) :: ast
@@ -820,9 +794,10 @@ let apply_lazy ~source ~target mapper =
   let iface ast =
     let fields, ast =
       match ast with
-      | {psig_desc = Psig_attribute ({txt = "ocaml.ppx.context"}, x)} :: l ->
-          PpxContext.get_fields x, l
-      | _ -> [], ast
+      | { psig_desc = Psig_attribute ({ txt = "ocaml.ppx.context" }, x) } :: l
+        ->
+          (PpxContext.get_fields x, l)
+      | _ -> ([], ast)
     in
     PpxContext.restore fields;
     let ast =
@@ -830,8 +805,12 @@ let apply_lazy ~source ~target mapper =
         let mapper = mapper () in
         mapper.signature mapper ast
       with exn ->
-        [{psig_desc = Psig_extension (ext_of_exn exn, []);
-          psig_loc  = Location.none}]
+        [
+          {
+            psig_desc = Psig_extension (ext_of_exn exn, []);
+            psig_loc = Location.none;
+          };
+        ]
     in
     let fields = PpxContext.update_cookies fields in
     Sig.attribute (PpxContext.mk fields) :: ast
@@ -854,7 +833,7 @@ let apply_lazy ~source ~target mapper =
     close_out oc
   and fail () =
     close_in ic;
-    failwith "Ast_mapper: OCaml version mismatch or malformed input";
+    failwith "Ast_mapper: OCaml version mismatch or malformed input"
   in
 
   if magic = Config.ast_impl_magic_number then
@@ -864,18 +843,16 @@ let apply_lazy ~source ~target mapper =
   else fail ()
 
 let drop_ppx_context_str ~restore = function
-  | {pstr_desc = Pstr_attribute({Location.txt = "ocaml.ppx.context"}, a)}
+  | { pstr_desc = Pstr_attribute ({ Location.txt = "ocaml.ppx.context" }, a) }
     :: items ->
-      if restore then
-        PpxContext.restore (PpxContext.get_fields a);
+      if restore then PpxContext.restore (PpxContext.get_fields a);
       items
   | items -> items
 
 let drop_ppx_context_sig ~restore = function
-  | {psig_desc = Psig_attribute({Location.txt = "ocaml.ppx.context"}, a)}
+  | { psig_desc = Psig_attribute ({ Location.txt = "ocaml.ppx.context" }, a) }
     :: items ->
-      if restore then
-        PpxContext.restore (PpxContext.get_fields a);
+      if restore then PpxContext.restore (PpxContext.get_fields a);
       items
   | items -> items
 
@@ -885,9 +862,7 @@ let add_ppx_context_str ~tool_name ast =
 let add_ppx_context_sig ~tool_name ast =
   Ast_helper.Sig.attribute (ppx_context ~tool_name ()) :: ast
 
-
-let apply ~source ~target mapper =
-  apply_lazy ~source ~target (fun () -> mapper)
+let apply ~source ~target mapper = apply_lazy ~source ~target (fun () -> mapper)
 
 let run_main mapper =
   try
@@ -899,14 +874,13 @@ let run_main mapper =
         with exn ->
           (* PR #6463 *)
           let f _ _ = raise exn in
-          {default_mapper with structure = f; signature = f}
+          { default_mapper with structure = f; signature = f }
       in
       apply_lazy ~source:a.(n - 2) ~target:a.(n - 1) mapper
-    else begin
+    else (
       Printf.eprintf "Usage: %s [extra_args] <infile> <outfile>\n%!"
-                     Sys.executable_name;
-      exit 2
-    end
+        Sys.executable_name;
+      exit 2)
   with exn ->
     prerr_endline (Printexc.to_string exn);
     exit 2

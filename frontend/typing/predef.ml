@@ -63,23 +63,24 @@ and path_lazy_t = Pident ident_lazy_t
 and path_string = Pident ident_string
 and path_extension_constructor = Pident ident_extension_constructor
 
-let type_int = newgenty (Tconstr(path_int, [], ref Mnil))
-and type_char = newgenty (Tconstr(path_char, [], ref Mnil))
-and type_bytes = newgenty (Tconstr(path_bytes, [], ref Mnil))
-and type_float = newgenty (Tconstr(path_float, [], ref Mnil))
-and type_bool = newgenty (Tconstr(path_bool, [], ref Mnil))
-and type_unit = newgenty (Tconstr(path_unit, [], ref Mnil))
-and type_exn = newgenty (Tconstr(path_exn, [], ref Mnil))
-and type_array t = newgenty (Tconstr(path_array, [t], ref Mnil))
-and type_list t = newgenty (Tconstr(path_list, [t], ref Mnil))
-and type_option t = newgenty (Tconstr(path_option, [t], ref Mnil))
-and type_nativeint = newgenty (Tconstr(path_nativeint, [], ref Mnil))
-and type_int32 = newgenty (Tconstr(path_int32, [], ref Mnil))
-and type_int64 = newgenty (Tconstr(path_int64, [], ref Mnil))
-and type_lazy_t t = newgenty (Tconstr(path_lazy_t, [t], ref Mnil))
-and type_string = newgenty (Tconstr(path_string, [], ref Mnil))
+let type_int = newgenty (Tconstr (path_int, [], ref Mnil))
+and type_char = newgenty (Tconstr (path_char, [], ref Mnil))
+and type_bytes = newgenty (Tconstr (path_bytes, [], ref Mnil))
+and type_float = newgenty (Tconstr (path_float, [], ref Mnil))
+and type_bool = newgenty (Tconstr (path_bool, [], ref Mnil))
+and type_unit = newgenty (Tconstr (path_unit, [], ref Mnil))
+and type_exn = newgenty (Tconstr (path_exn, [], ref Mnil))
+and type_array t = newgenty (Tconstr (path_array, [ t ], ref Mnil))
+and type_list t = newgenty (Tconstr (path_list, [ t ], ref Mnil))
+and type_option t = newgenty (Tconstr (path_option, [ t ], ref Mnil))
+and type_nativeint = newgenty (Tconstr (path_nativeint, [], ref Mnil))
+and type_int32 = newgenty (Tconstr (path_int32, [], ref Mnil))
+and type_int64 = newgenty (Tconstr (path_int64, [], ref Mnil))
+and type_lazy_t t = newgenty (Tconstr (path_lazy_t, [ t ], ref Mnil))
+and type_string = newgenty (Tconstr (path_string, [], ref Mnil))
+
 and type_extension_constructor =
-      newgenty (Tconstr(path_extension_constructor, [], ref Mnil))
+  newgenty (Tconstr (path_extension_constructor, [], ref Mnil))
 
 let ident_match_failure = ident_create_predef_exn "Match_failure"
 and ident_out_of_memory = ident_create_predef_exn "Out_of_memory"
@@ -92,42 +93,45 @@ and ident_division_by_zero = ident_create_predef_exn "Division_by_zero"
 and ident_stack_overflow = ident_create_predef_exn "Stack_overflow"
 and ident_sys_blocked_io = ident_create_predef_exn "Sys_blocked_io"
 and ident_assert_failure = ident_create_predef_exn "Assert_failure"
-and ident_undefined_recursive_module =
-        ident_create_predef_exn "Undefined_recursive_module"
 
-let all_predef_exns = [
-  ident_match_failure;
-  ident_out_of_memory;
-  ident_invalid_argument;
-  ident_failure;
-  ident_not_found;
-  ident_sys_error;
-  ident_end_of_file;
-  ident_division_by_zero;
-  ident_stack_overflow;
-  ident_sys_blocked_io;
-  ident_assert_failure;
-  ident_undefined_recursive_module;
-]
+and ident_undefined_recursive_module =
+  ident_create_predef_exn "Undefined_recursive_module"
+
+let all_predef_exns =
+  [
+    ident_match_failure;
+    ident_out_of_memory;
+    ident_invalid_argument;
+    ident_failure;
+    ident_not_found;
+    ident_sys_error;
+    ident_end_of_file;
+    ident_division_by_zero;
+    ident_stack_overflow;
+    ident_sys_blocked_io;
+    ident_assert_failure;
+    ident_undefined_recursive_module;
+  ]
 
 let path_match_failure = Pident ident_match_failure
 and path_assert_failure = Pident ident_assert_failure
 and path_undefined_recursive_module = Pident ident_undefined_recursive_module
 
 let decl_abstr =
-  {type_params = [];
-   type_arity = 0;
-   type_kind = Type_abstract;
-   type_loc = Location.none;
-   type_private = Asttypes.Public;
-   type_manifest = None;
-   type_variance = [];
-   type_newtype_level = None;
-   type_attributes = [];
-   type_immediate = false;
+  {
+    type_params = [];
+    type_arity = 0;
+    type_kind = Type_abstract;
+    type_loc = Location.none;
+    type_private = Asttypes.Public;
+    type_manifest = None;
+    type_variance = [];
+    type_newtype_level = None;
+    type_attributes = [];
+    type_immediate = false;
   }
 
-let decl_abstr_imm = {decl_abstr with type_immediate = true}
+let decl_abstr_imm = { decl_abstr with type_immediate = true }
 
 let cstr id args =
   {
@@ -145,105 +149,165 @@ and ident_nil = ident_create "[]"
 and ident_cons = ident_create "::"
 and ident_none = ident_create "None"
 and ident_some = ident_create "Some"
+
 let common_initial_env add_type add_extension empty_env =
   let decl_bool =
-    {decl_abstr with
-     type_kind = Type_variant([cstr ident_false []; cstr ident_true []]);
-     type_immediate = true}
+    {
+      decl_abstr with
+      type_kind = Type_variant [ cstr ident_false []; cstr ident_true [] ];
+      type_immediate = true;
+    }
   and decl_unit =
-    {decl_abstr with
-     type_kind = Type_variant([cstr ident_void []]);
-     type_immediate = true}
-  and decl_exn =
-    {decl_abstr with
-     type_kind = Type_open}
+    {
+      decl_abstr with
+      type_kind = Type_variant [ cstr ident_void [] ];
+      type_immediate = true;
+    }
+  and decl_exn = { decl_abstr with type_kind = Type_open }
   and decl_array =
-    let tvar = newgenvar() in
-    {decl_abstr with
-     type_params = [tvar];
-     type_arity = 1;
-     type_variance = [Variance.full]}
+    let tvar = newgenvar () in
+    {
+      decl_abstr with
+      type_params = [ tvar ];
+      type_arity = 1;
+      type_variance = [ Variance.full ];
+    }
   and decl_list =
-    let tvar = newgenvar() in
-    {decl_abstr with
-     type_params = [tvar];
-     type_arity = 1;
-     type_kind =
-     Type_variant([cstr ident_nil []; cstr ident_cons [tvar; type_list tvar]]);
-     type_variance = [Variance.covariant]}
+    let tvar = newgenvar () in
+    {
+      decl_abstr with
+      type_params = [ tvar ];
+      type_arity = 1;
+      type_kind =
+        Type_variant
+          [ cstr ident_nil []; cstr ident_cons [ tvar; type_list tvar ] ];
+      type_variance = [ Variance.covariant ];
+    }
   and decl_option =
-    let tvar = newgenvar() in
-    {decl_abstr with
-     type_params = [tvar];
-     type_arity = 1;
-     type_kind = Type_variant([cstr ident_none []; cstr ident_some [tvar]]);
-     type_variance = [Variance.covariant]}
+    let tvar = newgenvar () in
+    {
+      decl_abstr with
+      type_params = [ tvar ];
+      type_arity = 1;
+      type_kind = Type_variant [ cstr ident_none []; cstr ident_some [ tvar ] ];
+      type_variance = [ Variance.covariant ];
+    }
   and decl_lazy_t =
-    let tvar = newgenvar() in
-    {decl_abstr with
-     type_params = [tvar];
-     type_arity = 1;
-     type_variance = [Variance.covariant]}
+    let tvar = newgenvar () in
+    {
+      decl_abstr with
+      type_params = [ tvar ];
+      type_arity = 1;
+      type_variance = [ Variance.covariant ];
+    }
   in
 
   let add_extension id l =
     add_extension id
-      { ext_type_path = path_exn;
+      {
+        ext_type_path = path_exn;
         ext_type_params = [];
         ext_args = Cstr_tuple l;
         ext_ret_type = None;
         ext_private = Asttypes.Public;
         ext_loc = Location.none;
-        ext_attributes = [{Asttypes.txt="ocaml.warn_on_literal_pattern";
-                           loc=Location.none},
-                          Parsetree.PStr[]] }
+        ext_attributes =
+          [
+            ( {
+                Asttypes.txt = "ocaml.warn_on_literal_pattern";
+                loc = Location.none;
+              },
+              Parsetree.PStr [] );
+          ];
+      }
   in
   add_extension ident_match_failure
-                         [newgenty (Ttuple[type_string; type_int; type_int])] (
-  add_extension ident_out_of_memory [] (
-  add_extension ident_stack_overflow [] (
-  add_extension ident_invalid_argument [type_string] (
-  add_extension ident_failure [type_string] (
-  add_extension ident_not_found [] (
-  add_extension ident_sys_blocked_io [] (
-  add_extension ident_sys_error [type_string] (
-  add_extension ident_end_of_file [] (
-  add_extension ident_division_by_zero [] (
-  add_extension ident_assert_failure
-                         [newgenty (Ttuple[type_string; type_int; type_int])] (
-  add_extension ident_undefined_recursive_module
-                         [newgenty (Ttuple[type_string; type_int; type_int])] (
-  add_type ident_int64 decl_abstr (
-  add_type ident_int32 decl_abstr (
-  add_type ident_nativeint decl_abstr (
-  add_type ident_lazy_t decl_lazy_t (
-  add_type ident_option decl_option (
-  add_type ident_list decl_list (
-  add_type ident_array decl_array (
-  add_type ident_exn decl_exn (
-  add_type ident_unit decl_unit (
-  add_type ident_bool decl_bool (
-  add_type ident_float decl_abstr (
-  add_type ident_string decl_abstr (
-  add_type ident_char decl_abstr_imm (
-  add_type ident_int decl_abstr_imm (
-  add_type ident_extension_constructor decl_abstr (
-    empty_env)))))))))))))))))))))))))))
+    [ newgenty (Ttuple [ type_string; type_int; type_int ]) ]
+    (add_extension ident_out_of_memory []
+       (add_extension ident_stack_overflow []
+          (add_extension ident_invalid_argument [ type_string ]
+             (add_extension ident_failure [ type_string ]
+                (add_extension ident_not_found []
+                   (add_extension ident_sys_blocked_io []
+                      (add_extension ident_sys_error [ type_string ]
+                         (add_extension ident_end_of_file []
+                            (add_extension ident_division_by_zero []
+                               (add_extension ident_assert_failure
+                                  [
+                                    newgenty
+                                      (Ttuple
+                                         [ type_string; type_int; type_int ]);
+                                  ]
+                                  (add_extension
+                                     ident_undefined_recursive_module
+                                     [
+                                       newgenty
+                                         (Ttuple
+                                            [ type_string; type_int; type_int ]);
+                                     ]
+                                     (add_type ident_int64 decl_abstr
+                                        (add_type ident_int32 decl_abstr
+                                           (add_type ident_nativeint decl_abstr
+                                              (add_type ident_lazy_t decl_lazy_t
+                                                 (add_type ident_option
+                                                    decl_option
+                                                    (add_type ident_list
+                                                       decl_list
+                                                       (add_type ident_array
+                                                          decl_array
+                                                          (add_type ident_exn
+                                                             decl_exn
+                                                             (add_type
+                                                                ident_unit
+                                                                decl_unit
+                                                                (add_type
+                                                                   ident_bool
+                                                                   decl_bool
+                                                                   (add_type
+                                                                      ident_float
+                                                                      decl_abstr
+                                                                      (add_type
+                                                                         ident_string
+                                                                         decl_abstr
+                                                                         (add_type
+                                                                            ident_char
+                                                                            decl_abstr_imm
+                                                                            (add_type
+                                                                               ident_int
+                                                                               decl_abstr_imm
+                                                                               (add_type
+                                                                                ident_extension_constructor
+                                                                                decl_abstr
+                                                                                empty_env))))))))))))))))))))))))))
 
 let build_initial_env add_type add_exception empty_env =
   let common = common_initial_env add_type add_exception empty_env in
   let safe_string = add_type ident_bytes decl_abstr common in
-  let decl_bytes_unsafe = {decl_abstr with type_manifest = Some type_string} in
+  let decl_bytes_unsafe =
+    { decl_abstr with type_manifest = Some type_string }
+  in
   let unsafe_string = add_type ident_bytes decl_bytes_unsafe common in
   (safe_string, unsafe_string)
 
 let builtin_values =
-  List.map (fun id -> Ident.make_global id; (Ident.name id, id))
-      [ident_match_failure; ident_out_of_memory; ident_stack_overflow;
-       ident_invalid_argument;
-       ident_failure; ident_not_found; ident_sys_error; ident_end_of_file;
-       ident_division_by_zero; ident_sys_blocked_io;
-       ident_assert_failure; ident_undefined_recursive_module ]
+  List.map
+    (fun id ->
+      Ident.make_global id;
+      (Ident.name id, id))
+    [
+      ident_match_failure;
+      ident_out_of_memory;
+      ident_stack_overflow;
+      ident_invalid_argument;
+      ident_failure;
+      ident_not_found;
+      ident_sys_error;
+      ident_end_of_file;
+      ident_division_by_zero;
+      ident_sys_blocked_io;
+      ident_assert_failure;
+      ident_undefined_recursive_module;
+    ]
 
 (* Start non-predef identifiers at 1000.  This way, more predefs can
    be defined in this file (above!) without breaking .cmi

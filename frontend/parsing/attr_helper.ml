@@ -16,9 +16,7 @@
 open Asttypes
 open Parsetree
 
-type error =
-  | Multiple_attributes of string
-  | No_payload_expected of string
+type error = Multiple_attributes of string | No_payload_expected of string
 
 exception Error of Location.t * error
 
@@ -26,29 +24,23 @@ let get_no_payload_attribute alt_names attrs =
   match List.filter (fun (n, _) -> List.mem n.txt alt_names) attrs with
   | [] -> None
   | [ (name, PStr []) ] -> Some name
-  | [ (name, _) ] ->
-    raise (Error (name.loc, No_payload_expected name.txt))
+  | [ (name, _) ] -> raise (Error (name.loc, No_payload_expected name.txt))
   | _ :: (name, _) :: _ ->
-    raise (Error (name.loc, Multiple_attributes name.txt))
+      raise (Error (name.loc, Multiple_attributes name.txt))
 
 let has_no_payload_attribute alt_names attrs =
   match get_no_payload_attribute alt_names attrs with
-  | None   -> false
+  | None -> false
   | Some _ -> true
 
 open Format
 
 let report_error ppf = function
-  | Multiple_attributes name ->
-    fprintf ppf "Too many `%s' attributes" name
+  | Multiple_attributes name -> fprintf ppf "Too many `%s' attributes" name
   | No_payload_expected name ->
-    fprintf ppf "Attribute `%s' does not accept a payload" name
+      fprintf ppf "Attribute `%s' does not accept a payload" name
 
 let () =
-  Location.register_error_of_exn
-    (function
-      | Error (loc, err) ->
-        Some (Location.error_of_printer loc report_error err)
-      | _ ->
-        None
-    )
+  Location.register_error_of_exn (function
+    | Error (loc, err) -> Some (Location.error_of_printer loc report_error err)
+    | _ -> None)

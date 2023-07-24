@@ -25,10 +25,8 @@
  * external standout : bool -> unit = "caml_terminfo_standout";;
  * external resume : int -> unit = "caml_terminfo_resume";; *)
 
-type status =
-  | Uninitialised
-  | Bad_term
-  | Good_term
+type status = Uninitialised | Bad_term | Good_term
+
 val setup : out_channel -> status
 val num_lines : out_channel -> int
 val backup : out_channel -> int -> unit

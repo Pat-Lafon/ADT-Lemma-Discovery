@@ -19,11 +19,9 @@ module Int_arg_helper : sig
 
   val parse : string -> help_text:string -> update:parsed ref -> unit
 
-  type parse_result =
-    | Ok
-    | Parse_failed of exn
-  val parse_no_error : string -> update:parsed ref -> parse_result
+  type parse_result = Ok | Parse_failed of exn
 
+  val parse_no_error : string -> update:parsed ref -> parse_result
   val get : key:int -> parsed -> int
 end
 
@@ -33,11 +31,9 @@ module Float_arg_helper : sig
 
   val parse : string -> help_text:string -> update:parsed ref -> unit
 
-  type parse_result =
-    | Ok
-    | Parse_failed of exn
-  val parse_no_error : string -> update:parsed ref -> parse_result
+  type parse_result = Ok | Parse_failed of exn
 
+  val parse_no_error : string -> update:parsed ref -> parse_result
   val get : key:int -> parsed -> float
 end
 
@@ -60,9 +56,9 @@ val o1_arguments : inlining_arguments
 val o2_arguments : inlining_arguments
 val o3_arguments : inlining_arguments
 
+val use_inlining_arguments_set : ?round:int -> inlining_arguments -> unit
 (** Set all the inlining arguments for a round.
     The default is set if no round is provided. *)
-val use_inlining_arguments_set : ?round:int -> inlining_arguments -> unit
 
 val objfiles : string list ref
 val ccobjs : string list ref
@@ -192,10 +188,8 @@ val inline_max_depth : Int_arg_helper.parsed ref
 val remove_unused_arguments : bool ref
 val dump_flambda_verbose : bool ref
 val classic_inlining : bool ref
-
 val all_passes : string list ref
 val dumped_pass : string -> bool
 val set_dumped_pass : string -> bool -> unit
-
 val parse_color_setting : string -> Misc.Color.setting option
 val color : Misc.Color.setting ref

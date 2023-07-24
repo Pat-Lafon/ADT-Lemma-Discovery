@@ -24,13 +24,10 @@ module type S = sig
       from [a] to every element of [set].  It is assumed that no edge
       points to a vertex not represented in the map. *)
 
-  type component =
-    | Has_loop of Id.t list
-    | No_loop of Id.t
+  type component = Has_loop of Id.t list | No_loop of Id.t
 
-  val connected_components_sorted_from_roots_to_leaf
-     : directed_graph
-    -> component array
+  val connected_components_sorted_from_roots_to_leaf :
+    directed_graph -> component array
 
   val component_graph : directed_graph -> (component * int list) array
 end

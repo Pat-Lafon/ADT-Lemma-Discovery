@@ -1,4 +1,3 @@
 (library
  (name inference)
- (libraries utils pred language ml solver qcheck core)
-)
+ (libraries utils pred language ml solver qcheck core))

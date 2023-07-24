@@ -1,88 +1,99 @@
 module type SimpleExpr = sig
   include SimpleExprTree.SimpleExprTree
+
   type value = L.value
-  val fv: t -> string list
-  val type_check : t -> (t * bool)
-  val exec: t -> value Utils.StrMap.t -> value
-  val extract_dt: t -> value list * string list
-  val to_z3: Z3.context -> t -> Z3.Expr.expr
+
+  val fv : t -> string list
+  val type_check : t -> t * bool
+  val exec : t -> value Utils.StrMap.t -> value
+  val extract_dt : t -> value list * string list
+  val to_z3 : Z3.context -> t -> Z3.Expr.expr
+
   (* val fixed_int_to_z3: Z3.context -> string -> int -> Z3.Expr.expr
    * val fixed_dt_to_z3: Z3.context -> string -> string -> value -> Z3.Expr.expr *)
-  val related_dt: t -> string list -> string list
+  val related_dt : t -> string list -> string list
 end
 
-module SimpleExpr (B: SimpleExprTree.SimpleExprTree): SimpleExpr = struct
+module SimpleExpr (B : SimpleExprTree.SimpleExprTree) : SimpleExpr = struct
   module P = Pred.Pred
   module T = Tp.Tp
   include B
   open Utils
+
   (* open Printf *)
   type value = L.value
+
   let fv _ = []
   let type_check expr = (expr, true)
+
   let non_dt_op op args =
-    match op, args with
-    | "+", [P.V.I a; P.V.I b] -> Some (P.V.I (a + b))
-    | "-", [P.V.I a; P.V.I b] -> Some (P.V.I (a - b))
-    | "==", [P.V.I a; P.V.I b] -> Some (P.V.B (a == b))
-    | "<>", [P.V.I a; P.V.I b] -> Some (P.V.B (a <> b))
-    | ">=", [P.V.I a; P.V.I b] -> Some (P.V.B (a >= b))
-    | "<=", [P.V.I a; P.V.I b] -> Some (P.V.B (a <= b))
-    | ">", [P.V.I a; P.V.I b] -> Some (P.V.B (a > b))
-    | "<", [P.V.I a; P.V.I b] -> Some (P.V.B (a < b))
+    match (op, args) with
+    | "+", [ P.V.I a; P.V.I b ] -> Some (P.V.I (a + b))
+    | "-", [ P.V.I a; P.V.I b ] -> Some (P.V.I (a - b))
+    | "==", [ P.V.I a; P.V.I b ] -> Some (P.V.B (a == b))
+    | "<>", [ P.V.I a; P.V.I b ] -> Some (P.V.B (a <> b))
+    | ">=", [ P.V.I a; P.V.I b ] -> Some (P.V.B (a >= b))
+    | "<=", [ P.V.I a; P.V.I b ] -> Some (P.V.B (a <= b))
+    | ">", [ P.V.I a; P.V.I b ] -> Some (P.V.B (a > b))
+    | "<", [ P.V.I a; P.V.I b ] -> Some (P.V.B (a < b))
     | _, _ -> None
+
   let exec expr env =
     let rec aux = function
       | Literal (_, lit) -> L.exec lit
       | Var (_, name) ->
-        StrMap.find (Printf.sprintf "SimpleExpr::exec::find %s" name) env name
-      | Op (_, op, args) ->
-        let args = List.map aux args in
-        (match non_dt_op op args with
-         | Some v -> v
-         | None -> match args with
-           | [] -> raise @@ InterExn "SimpleExpr::exec"
-           | dt :: args -> P.V.B (P.apply (op, dt, args))
-        )
+          StrMap.find (Printf.sprintf "SimpleExpr::exec::find %s" name) env name
+      | Op (_, op, args) -> (
+          let args = List.map aux args in
+          match non_dt_op op args with
+          | Some v -> v
+          | None -> (
+              match args with
+              | [] -> raise @@ InterExn "SimpleExpr::exec"
+              | dt :: args -> P.V.B (P.apply (op, dt, args))))
     in
     aux expr
+
   let extract_dt expr =
     let rec aux = function
-      | Literal (_, L.IntList lit) -> [P.V.L lit]
-      | Literal (_, L.IntTree lit) -> [P.V.T lit]
+      | Literal (_, L.IntList lit) -> [ P.V.L lit ]
+      | Literal (_, L.IntTree lit) -> [ P.V.T lit ]
       | Op (_, _, args) -> List.concat @@ List.map aux args
       | _ -> []
     in
     let consts = List.remove_duplicates P.V.eq (aux expr) in
     let rec aux = function
-      | Var (IntList, name) | Var (IntTree, name) -> [name]
+      | Var (IntList, name) | Var (IntTree, name) -> [ name ]
       | Op (_, _, args) -> List.concat @@ List.map aux args
       | _ -> []
     in
     let vars = List.remove_duplicates String.equal (aux expr) in
-    consts, vars
+    (consts, vars)
 
   open Solver.Z3aux
   open Z3
   open Arithmetic
   open Boolean
+
   let non_dt_op_to_z3 ctx op args =
-    match op, args with
-    | "+", [a; b] -> Some (mk_add ctx [a; b])
-    | "-", [a; b] -> Some (mk_sub ctx [a; b])
-    | "==", [a; b] -> Some (mk_eq ctx a b)
-    | "<>", [a; b] -> Some (mk_not ctx @@ mk_eq ctx a b)
-    | ">=", [a; b] -> Some (mk_ge ctx a b)
-    | "<=", [a; b] -> Some (mk_le ctx a b)
-    | ">", [a; b] -> Some (mk_gt ctx a b)
-    | "<", [a; b] -> Some (mk_lt ctx a b)
+    match (op, args) with
+    | "+", [ a; b ] -> Some (mk_add ctx [ a; b ])
+    | "-", [ a; b ] -> Some (mk_sub ctx [ a; b ])
+    | "==", [ a; b ] -> Some (mk_eq ctx a b)
+    | "<>", [ a; b ] -> Some (mk_not ctx @@ mk_eq ctx a b)
+    | ">=", [ a; b ] -> Some (mk_ge ctx a b)
+    | "<=", [ a; b ] -> Some (mk_le ctx a b)
+    | ">", [ a; b ] -> Some (mk_gt ctx a b)
+    | "<", [ a; b ] -> Some (mk_lt ctx a b)
     | _, _ -> None
+
   let var_to_z3 ctx tp name =
-    if T.is_dt tp then Integer.mk_const_s ctx name else
-    match tp with
-    | T.Int -> Integer.mk_const_s ctx name
-    | T.Bool -> Boolean.mk_const_s ctx name
-    | _ -> raise @@ InterExn "var_to_z3"
+    if T.is_dt tp then Integer.mk_const_s ctx name
+    else
+      match tp with
+      | T.Int -> Integer.mk_const_s ctx name
+      | T.Bool -> Boolean.mk_const_s ctx name
+      | _ -> raise @@ InterExn "var_to_z3"
 
   (* let bvar_to_z3 ctx = function
    *   | Var (tp, name) -> var_to_z3 ctx tp name
@@ -105,15 +116,18 @@ module SimpleExpr (B: SimpleExprTree.SimpleExprTree): SimpleExpr = struct
       | Literal (_, L.Bool b) -> bool_to_z3 ctx b
       | Literal (_, _) -> raise @@ InterExn "datatype literal"
       | Var (tp, name) -> var_to_z3 ctx tp name
-      | Op (_, op, args) ->
-        let eargs = List.map aux args in
-        match non_dt_op_to_z3 ctx op eargs with
-        | Some e -> e
-        | None ->
-           let sorts = List.map Expr.get_sort eargs in
-           let func = FuncDecl.mk_func_decl ctx (Symbol.mk_string ctx op) sorts (Boolean.mk_sort ctx) in
-           Z3.FuncDecl.apply func eargs
-(*
+      | Op (_, op, args) -> (
+          let eargs = List.map aux args in
+          match non_dt_op_to_z3 ctx op eargs with
+          | Some e -> e
+          | None ->
+              let sorts = List.map Expr.get_sort eargs in
+              let func =
+                FuncDecl.mk_func_decl ctx (Symbol.mk_string ctx op) sorts
+                  (Boolean.mk_sort ctx)
+              in
+              Z3.FuncDecl.apply func eargs)
+      (*
           (match List.find_opt
                    (fun info -> String.equal info.P.name op) P.preds_info with
           | Some _ ->
@@ -156,24 +170,27 @@ module SimpleExpr (B: SimpleExprTree.SimpleExprTree): SimpleExpr = struct
   let related_dt expr fv =
     let extract = function
       | Literal (_, _) -> []
-      | Var (tp, name) -> [tp, name]
+      | Var (tp, name) -> [ (tp, name) ]
       | Op (_, _, _) -> []
     in
     let rec aux = function
       | Literal (_, _) -> []
       | Var (_, _) -> []
       | Op (_, _, args) ->
-        let r = List.flatten (List.map aux args) in
-        let argsname = List.flatten (List.map extract args) in
-        if List.exists (fun (tp, name) ->
-            (T.eq tp T.Int) && (List.exists (fun name' -> String.equal name name') fv)
-          ) argsname
-        then
-          (List.filter_map (fun (tp, name) ->
-              if T.is_dt tp then Some name else None
-             ) argsname) @ r
-        else
-          r
+          let r = List.flatten (List.map aux args) in
+          let argsname = List.flatten (List.map extract args) in
+          if
+            List.exists
+              (fun (tp, name) ->
+                T.eq tp T.Int
+                && List.exists (fun name' -> String.equal name name') fv)
+              argsname
+          then
+            List.filter_map
+              (fun (tp, name) -> if T.is_dt tp then Some name else None)
+              argsname
+            @ r
+          else r
     in
     List.remove_duplicates String.equal (aux expr)
 

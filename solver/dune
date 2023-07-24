@@ -1,4 +1,3 @@
 (library
  (name solver)
- (libraries utils z3 tp)
-)
+ (libraries utils z3 tp))

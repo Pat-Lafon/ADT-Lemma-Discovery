@@ -15,30 +15,36 @@
 
 (* Miscellaneous useful types and functions *)
 
-val fatal_error: string -> 'a
-val fatal_errorf: ('a, Format.formatter, unit, 'b) format4 -> 'a
+val fatal_error : string -> 'a
+val fatal_errorf : ('a, Format.formatter, unit, 'b) format4 -> 'a
+
 exception Fatal_error
 
-val try_finally : (unit -> 'a) -> (unit -> unit) -> 'a;;
+val try_finally : (unit -> 'a) -> (unit -> unit) -> 'a
+val map_end : ('a -> 'b) -> 'a list -> 'b list -> 'b list
+(* [map_end f l t] is [map f l @ t], just more efficient. *)
 
-val map_end: ('a -> 'b) -> 'a list -> 'b list -> 'b list
-        (* [map_end f l t] is [map f l @ t], just more efficient. *)
-val map_left_right: ('a -> 'b) -> 'a list -> 'b list
-        (* Like [List.map], with guaranteed left-to-right evaluation order *)
-val for_all2: ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
-        (* Same as [List.for_all] but for a binary predicate.
-           In addition, this [for_all2] never fails: given two lists
-           with different lengths, it returns false. *)
-val replicate_list: 'a -> int -> 'a list
-        (* [replicate_list elem n] is the list with [n] elements
-           all identical to [elem]. *)
-val list_remove: 'a -> 'a list -> 'a list
-        (* [list_remove x l] returns a copy of [l] with the first
-           element equal to [x] removed. *)
-val split_last: 'a list -> 'a list * 'a
-        (* Return the last element and the other elements of the given list. *)
-val may: ('a -> unit) -> 'a option -> unit
-val may_map: ('a -> 'b) -> 'a option -> 'b option
+val map_left_right : ('a -> 'b) -> 'a list -> 'b list
+(* Like [List.map], with guaranteed left-to-right evaluation order *)
+
+val for_all2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
+(* Same as [List.for_all] but for a binary predicate.
+   In addition, this [for_all2] never fails: given two lists
+   with different lengths, it returns false. *)
+
+val replicate_list : 'a -> int -> 'a list
+(* [replicate_list elem n] is the list with [n] elements
+   all identical to [elem]. *)
+
+val list_remove : 'a -> 'a list -> 'a list
+(* [list_remove x l] returns a copy of [l] with the first
+   element equal to [x] removed. *)
+
+val split_last : 'a list -> 'a list * 'a
+(* Return the last element and the other elements of the given list. *)
+
+val may : ('a -> unit) -> 'a option -> unit
+val may_map : ('a -> 'b) -> 'a option -> 'b option
 
 module Stdlib : sig
   module List : sig
@@ -62,7 +68,7 @@ module Stdlib : sig
         is returned with the [xs] being the contents of those [Some]s, with
         order preserved.  Otherwise return [None]. *)
 
-    val map2_prefix : ('a -> 'b -> 'c) -> 'a t -> 'b t -> ('c t * 'b t)
+    val map2_prefix : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t * 'b t
     (** [let r1, r2 = map2_prefix f l1 l2]
         If [l1] is of length n and [l2 = h2 @ t2] with h2 of length n,
         r1 is [List.map2 f l1 h1] and r2 is t2. *)
@@ -77,7 +83,6 @@ module Stdlib : sig
     type 'a t = 'a option
 
     val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
-
     val iter : ('a -> unit) -> 'a t -> unit
     val map : ('a -> 'b) -> 'a t -> 'b t
     val fold : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
@@ -94,52 +99,64 @@ module Stdlib : sig
   end
 end
 
-val find_in_path: string list -> string -> string
-        (* Search a file in a list of directories. *)
-val find_in_path_rel: string list -> string -> string
-        (* Search a relative file in a list of directories. *)
-val find_in_path_uncap: string list -> string -> string
-        (* Same, but search also for uncapitalized name, i.e.
-           if name is Foo.ml, allow /path/Foo.ml and /path/foo.ml
-           to match. *)
-val remove_file: string -> unit
-        (* Delete the given file if it exists. Never raise an error. *)
-val expand_directory: string -> string -> string
-        (* [expand_directory alt file] eventually expands a [+] at the
-           beginning of file into [alt] (an alternate root directory) *)
+val find_in_path : string list -> string -> string
+(* Search a file in a list of directories. *)
 
-val create_hashtable: int -> ('a * 'b) list -> ('a, 'b) Hashtbl.t
-        (* Create a hashtable of the given size and fills it with the
-           given bindings. *)
+val find_in_path_rel : string list -> string -> string
+(* Search a relative file in a list of directories. *)
 
-val copy_file: in_channel -> out_channel -> unit
-        (* [copy_file ic oc] reads the contents of file [ic] and copies
-           them to [oc]. It stops when encountering EOF on [ic]. *)
-val copy_file_chunk: in_channel -> out_channel -> int -> unit
-        (* [copy_file_chunk ic oc n] reads [n] bytes from [ic] and copies
-           them to [oc]. It raises [End_of_file] when encountering
-           EOF on [ic]. *)
-val string_of_file: in_channel -> string
-        (* [string_of_file ic] reads the contents of file [ic] and copies
-           them to a string. It stops when encountering EOF on [ic]. *)
-val log2: int -> int
-        (* [log2 n] returns [s] such that [n = 1 lsl s]
-           if [n] is a power of 2*)
-val align: int -> int -> int
-        (* [align n a] rounds [n] upwards to a multiple of [a]
-           (a power of 2). *)
-val no_overflow_add: int -> int -> bool
-        (* [no_overflow_add n1 n2] returns [true] if the computation of
-           [n1 + n2] does not overflow. *)
-val no_overflow_sub: int -> int -> bool
-        (* [no_overflow_add n1 n2] returns [true] if the computation of
-           [n1 - n2] does not overflow. *)
-val no_overflow_mul: int -> int -> bool
-        (* [no_overflow_mul n1 n2] returns [true] if the computation of
-           [n1 * n2] does not overflow. *)
-val no_overflow_lsl: int -> int -> bool
-        (* [no_overflow_lsl n k] returns [true] if the computation of
-           [n lsl k] does not overflow. *)
+val find_in_path_uncap : string list -> string -> string
+(* Same, but search also for uncapitalized name, i.e.
+   if name is Foo.ml, allow /path/Foo.ml and /path/foo.ml
+   to match. *)
+
+val remove_file : string -> unit
+(* Delete the given file if it exists. Never raise an error. *)
+
+val expand_directory : string -> string -> string
+(* [expand_directory alt file] eventually expands a [+] at the
+   beginning of file into [alt] (an alternate root directory) *)
+
+val create_hashtable : int -> ('a * 'b) list -> ('a, 'b) Hashtbl.t
+(* Create a hashtable of the given size and fills it with the
+   given bindings. *)
+
+val copy_file : in_channel -> out_channel -> unit
+(* [copy_file ic oc] reads the contents of file [ic] and copies
+   them to [oc]. It stops when encountering EOF on [ic]. *)
+
+val copy_file_chunk : in_channel -> out_channel -> int -> unit
+(* [copy_file_chunk ic oc n] reads [n] bytes from [ic] and copies
+   them to [oc]. It raises [End_of_file] when encountering
+   EOF on [ic]. *)
+
+val string_of_file : in_channel -> string
+(* [string_of_file ic] reads the contents of file [ic] and copies
+   them to a string. It stops when encountering EOF on [ic]. *)
+
+val log2 : int -> int
+(* [log2 n] returns [s] such that [n = 1 lsl s]
+   if [n] is a power of 2*)
+
+val align : int -> int -> int
+(* [align n a] rounds [n] upwards to a multiple of [a]
+   (a power of 2). *)
+
+val no_overflow_add : int -> int -> bool
+(* [no_overflow_add n1 n2] returns [true] if the computation of
+   [n1 + n2] does not overflow. *)
+
+val no_overflow_sub : int -> int -> bool
+(* [no_overflow_add n1 n2] returns [true] if the computation of
+   [n1 - n2] does not overflow. *)
+
+val no_overflow_mul : int -> int -> bool
+(* [no_overflow_mul n1 n2] returns [true] if the computation of
+   [n1 * n2] does not overflow. *)
+
+val no_overflow_lsl : int -> int -> bool
+(* [no_overflow_lsl n k] returns [true] if the computation of
+   [n lsl k] does not overflow. *)
 
 module Int_literal_converter : sig
   val int : string -> int
@@ -148,58 +165,56 @@ module Int_literal_converter : sig
   val nativeint : string -> nativeint
 end
 
-val chop_extension_if_any: string -> string
-        (* Like Filename.chop_extension but returns the initial file
-           name if it has no extension *)
+val chop_extension_if_any : string -> string
+(* Like Filename.chop_extension but returns the initial file
+   name if it has no extension *)
 
-val chop_extensions: string -> string
-        (* Return the given file name without its extensions. The extensions
-           is the longest suffix starting with a period and not including
-           a directory separator, [.xyz.uvw] for instance.
+val chop_extensions : string -> string
+(* Return the given file name without its extensions. The extensions
+   is the longest suffix starting with a period and not including
+   a directory separator, [.xyz.uvw] for instance.
 
-           Return the given name if it does not contain an extension. *)
+   Return the given name if it does not contain an extension. *)
 
-val search_substring: string -> string -> int -> int
-        (* [search_substring pat str start] returns the position of the first
-           occurrence of string [pat] in string [str].  Search starts
-           at offset [start] in [str].  Raise [Not_found] if [pat]
-           does not occur. *)
+val search_substring : string -> string -> int -> int
+(* [search_substring pat str start] returns the position of the first
+   occurrence of string [pat] in string [str].  Search starts
+   at offset [start] in [str].  Raise [Not_found] if [pat]
+   does not occur. *)
 
-val replace_substring: before:string -> after:string -> string -> string
-        (* [search_substring ~before ~after str] replaces all
-           occurences of [before] with [after] in [str] and returns
-           the resulting string. *)
+val replace_substring : before:string -> after:string -> string -> string
+(* [search_substring ~before ~after str] replaces all
+   occurences of [before] with [after] in [str] and returns
+   the resulting string. *)
 
-val rev_split_words: string -> string list
-        (* [rev_split_words s] splits [s] in blank-separated words, and returns
-           the list of words in reverse order. *)
+val rev_split_words : string -> string list
+(* [rev_split_words s] splits [s] in blank-separated words, and returns
+   the list of words in reverse order. *)
 
-val get_ref: 'a list ref -> 'a list
-        (* [get_ref lr] returns the content of the list reference [lr] and reset
-           its content to the empty list. *)
+val get_ref : 'a list ref -> 'a list
+(* [get_ref lr] returns the content of the list reference [lr] and reset
+   its content to the empty list. *)
 
+val fst3 : 'a * 'b * 'c -> 'a
+val snd3 : 'a * 'b * 'c -> 'b
+val thd3 : 'a * 'b * 'c -> 'c
+val fst4 : 'a * 'b * 'c * 'd -> 'a
+val snd4 : 'a * 'b * 'c * 'd -> 'b
+val thd4 : 'a * 'b * 'c * 'd -> 'c
+val for4 : 'a * 'b * 'c * 'd -> 'd
 
-val fst3: 'a * 'b * 'c -> 'a
-val snd3: 'a * 'b * 'c -> 'b
-val thd3: 'a * 'b * 'c -> 'c
+module LongString : sig
+  type t = bytes array
 
-val fst4: 'a * 'b * 'c * 'd -> 'a
-val snd4: 'a * 'b * 'c * 'd -> 'b
-val thd4: 'a * 'b * 'c * 'd -> 'c
-val for4: 'a * 'b * 'c * 'd -> 'd
-
-module LongString :
-  sig
-    type t = bytes array
-    val create : int -> t
-    val length : t -> int
-    val get : t -> int -> char
-    val set : t -> int -> char -> unit
-    val blit : t -> int -> t -> int -> int -> unit
-    val output : out_channel -> t -> int -> int -> unit
-    val unsafe_blit_to_bytes : t -> int -> bytes -> int -> int -> unit
-    val input_bytes : in_channel -> int -> t
-  end
+  val create : int -> t
+  val length : t -> int
+  val get : t -> int -> char
+  val set : t -> int -> char -> unit
+  val blit : t -> int -> t -> int -> int -> unit
+  val output : out_channel -> t -> int -> int -> unit
+  val unsafe_blit_to_bytes : t -> int -> bytes -> int -> int -> unit
+  val input_bytes : in_channel -> int -> t
+end
 
 val edit_distance : string -> string -> int -> int option
 (** [edit_distance a b cutoff] computes the edit distance between
@@ -250,24 +265,14 @@ val cut_at : string -> char -> string * string
    @since 4.01
 *)
 
-
-module StringSet: Set.S with type elt = string
-module StringMap: Map.S with type key = string
+module StringSet : Set.S with type elt = string
+module StringMap : Map.S with type key = string
 (* TODO: replace all custom instantiations of StringSet/StringMap in various
    compiler modules with this one. *)
 
 (* Color handling *)
 module Color : sig
-  type color =
-    | Black
-    | Red
-    | Green
-    | Yellow
-    | Blue
-    | Magenta
-    | Cyan
-    | White
-  ;;
+  type color = Black | Red | Green | Yellow | Blue | Magenta | Cyan | White
 
   type style =
     | FG of color (* foreground *)
@@ -278,15 +283,11 @@ module Color : sig
   val ansi_of_style_l : style list -> string
   (* ANSI escape sequence for the given style *)
 
-  type styles = {
-    error: style list;
-    warning: style list;
-    loc: style list;
-  }
+  type styles = { error : style list; warning : style list; loc : style list }
 
-  val default_styles: styles
-  val get_styles: unit -> styles
-  val set_styles: styles -> unit
+  val default_styles : styles
+  val get_styles : unit -> styles
+  val set_styles : styles -> unit
 
   type setting = Auto | Always | Never
 

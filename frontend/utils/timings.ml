@@ -14,12 +14,7 @@
 (**************************************************************************)
 
 type file = string
-
-type source_provenance =
-  | File of file
-  | Pack of string
-  | Startup
-  | Toplevel
+type source_provenance = File of file | Pack of string | Startup | Toplevel
 
 type compiler_pass =
   | All
@@ -58,10 +53,10 @@ let start pass =
   Hashtbl.add timings pass (time, None)
 
 let stop pass =
-  assert(Hashtbl.mem timings pass);
+  assert (Hashtbl.mem timings pass);
   let time = Sys.time () in
-  let (start, stop) = Hashtbl.find timings pass in
-  assert(stop = None);
+  let start, stop = Hashtbl.find timings pass in
+  assert (stop = None);
   Hashtbl.replace timings pass (start, Some (time -. start))
 
 let time pass f x =
@@ -74,7 +69,7 @@ let restart pass =
   let previous_duration =
     match Hashtbl.find timings pass with
     | exception Not_found -> 0.
-    | (_, Some duration) -> duration
+    | _, Some duration -> duration
     | _, None -> assert false
   in
   let time = Sys.time () in
@@ -85,9 +80,9 @@ let accumulate pass =
   match Hashtbl.find timings pass with
   | exception Not_found -> assert false
   | _, None -> assert false
-  | (start, Some duration) ->
-    let duration = duration +. (time -. start) in
-    Hashtbl.replace timings pass (start, Some duration)
+  | start, Some duration ->
+      let duration = duration +. (time -. start) in
+      Hashtbl.replace timings pass (start, Some duration)
 
 let accumulate_time pass f x =
   restart pass;
@@ -105,7 +100,7 @@ let kind_name = function
   | File f -> Printf.sprintf "sourcefile(%s)" f
   | Pack p -> Printf.sprintf "pack(%s)" p
   | Startup -> "startup"
-  | Toplevel  -> "toplevel"
+  | Toplevel -> "toplevel"
 
 let pass_name = function
   | All -> "all"
@@ -130,7 +125,7 @@ let pass_name = function
   | Scheduling k -> Printf.sprintf "scheduling(%s)" (kind_name k)
   | Emit k -> Printf.sprintf "emit(%s)" (kind_name k)
   | Flambda_pass (pass, file) ->
-    Printf.sprintf "flambda(%s)(%s)" pass (kind_name file)
+      Printf.sprintf "flambda(%s)(%s)" pass (kind_name file)
 
 let timings_list () =
   let l = Hashtbl.fold (fun pass times l -> (pass, times) :: l) timings [] in
@@ -138,11 +133,12 @@ let timings_list () =
 
 let print ppf =
   let current_time = Sys.time () in
-  List.iter (fun (pass, (start, stop)) ->
+  List.iter
+    (fun (pass, (start, stop)) ->
       match stop with
       | Some duration ->
-        Format.fprintf ppf "%s: %.03fs@." (pass_name pass) duration
+          Format.fprintf ppf "%s: %.03fs@." (pass_name pass) duration
       | None ->
-        Format.fprintf ppf "%s: running since %.03fs@." (pass_name pass)
-          (current_time -. start))
+          Format.fprintf ppf "%s: running since %.03fs@." (pass_name pass)
+            (current_time -. start))
     (timings_list ())

@@ -19,57 +19,86 @@ open Asttypes
 open Types
 open Format
 
-val is_nonexpansive: Typedtree.expression -> bool
+val is_nonexpansive : Typedtree.expression -> bool
 
-val type_binding:
-        Env.t -> rec_flag ->
-          Parsetree.value_binding list ->
-          Annot.ident option ->
-          Typedtree.value_binding list * Env.t
-val type_let:
-        Env.t -> rec_flag ->
-          Parsetree.value_binding list ->
-          Annot.ident option ->
-          Typedtree.value_binding list * Env.t
-val type_expression:
-        Env.t -> Parsetree.expression -> Typedtree.expression
-val type_class_arg_pattern:
-        string -> Env.t -> Env.t -> arg_label -> Parsetree.pattern ->
-        Typedtree.pattern * (Ident.t * string loc * Ident.t * type_expr) list *
-        Env.t * Env.t
-val type_self_pattern:
-        string -> type_expr -> Env.t -> Env.t -> Env.t -> Parsetree.pattern ->
-        Typedtree.pattern *
-        (Ident.t * type_expr) Meths.t ref *
-        (Ident.t * Asttypes.mutable_flag * Asttypes.virtual_flag * type_expr)
-            Vars.t ref *
-        Env.t * Env.t * Env.t
-val check_partial:
-        ?lev:int -> Env.t -> type_expr ->
-        Location.t -> Typedtree.case list -> Typedtree.partial
-val type_expect:
-        ?in_function:(Location.t * type_expr) ->
-        Env.t -> Parsetree.expression -> type_expr -> Typedtree.expression
-val type_exp:
-        Env.t -> Parsetree.expression -> Typedtree.expression
-val type_approx:
-        Env.t -> Parsetree.expression -> type_expr
-val type_argument:
-        Env.t -> Parsetree.expression ->
-        type_expr -> type_expr -> Typedtree.expression
+val type_binding :
+  Env.t ->
+  rec_flag ->
+  Parsetree.value_binding list ->
+  Annot.ident option ->
+  Typedtree.value_binding list * Env.t
 
-val option_some: Typedtree.expression -> Typedtree.expression
-val option_none: type_expr -> Location.t -> Typedtree.expression
-val extract_option_type: Env.t -> type_expr -> type_expr
-val iter_pattern: (Typedtree.pattern -> unit) -> Typedtree.pattern -> unit
-val generalizable: int -> type_expr -> bool
-val reset_delayed_checks: unit -> unit
-val force_delayed_checks: unit -> unit
+val type_let :
+  Env.t ->
+  rec_flag ->
+  Parsetree.value_binding list ->
+  Annot.ident option ->
+  Typedtree.value_binding list * Env.t
 
+val type_expression : Env.t -> Parsetree.expression -> Typedtree.expression
+
+val type_class_arg_pattern :
+  string ->
+  Env.t ->
+  Env.t ->
+  arg_label ->
+  Parsetree.pattern ->
+  Typedtree.pattern
+  * (Ident.t * string loc * Ident.t * type_expr) list
+  * Env.t
+  * Env.t
+
+val type_self_pattern :
+  string ->
+  type_expr ->
+  Env.t ->
+  Env.t ->
+  Env.t ->
+  Parsetree.pattern ->
+  Typedtree.pattern
+  * (Ident.t * type_expr) Meths.t ref
+  * (Ident.t * Asttypes.mutable_flag * Asttypes.virtual_flag * type_expr) Vars.t
+    ref
+  * Env.t
+  * Env.t
+  * Env.t
+
+val check_partial :
+  ?lev:int ->
+  Env.t ->
+  type_expr ->
+  Location.t ->
+  Typedtree.case list ->
+  Typedtree.partial
+
+val type_expect :
+  ?in_function:Location.t * type_expr ->
+  Env.t ->
+  Parsetree.expression ->
+  type_expr ->
+  Typedtree.expression
+
+val type_exp : Env.t -> Parsetree.expression -> Typedtree.expression
+val type_approx : Env.t -> Parsetree.expression -> type_expr
+
+val type_argument :
+  Env.t ->
+  Parsetree.expression ->
+  type_expr ->
+  type_expr ->
+  Typedtree.expression
+
+val option_some : Typedtree.expression -> Typedtree.expression
+val option_none : type_expr -> Location.t -> Typedtree.expression
+val extract_option_type : Env.t -> type_expr -> type_expr
+val iter_pattern : (Typedtree.pattern -> unit) -> Typedtree.pattern -> unit
+val generalizable : int -> type_expr -> bool
+val reset_delayed_checks : unit -> unit
+val force_delayed_checks : unit -> unit
 val self_coercion : (Path.t * Location.t list ref) list ref
 
 type error =
-    Polymorphic_label of Longident.t
+  | Polymorphic_label of Longident.t
   | Constructor_arity_mismatch of Longident.t * int * int
   | Label_mismatch of Longident.t * (type_expr * type_expr) list
   | Pattern_type_clash of (type_expr * type_expr) list
@@ -126,25 +155,38 @@ type error =
 exception Error of Location.t * Env.t * error
 exception Error_forward of Location.error
 
-val report_error: Env.t -> formatter -> error -> unit
- (* Deprecated.  Use Location.{error_of_exn, report_error}. *)
+val report_error : Env.t -> formatter -> error -> unit
+(* Deprecated.  Use Location.{error_of_exn, report_error}. *)
 
 (* Forward declaration, to be filled in by Typemod.type_module *)
-val type_module: (Env.t -> Parsetree.module_expr -> Typedtree.module_expr) ref
-(* Forward declaration, to be filled in by Typemod.type_open *)
-val type_open:
-    (override_flag -> Env.t -> Location.t -> Longident.t loc -> Path.t * Env.t)
-    ref
-(* Forward declaration, to be filled in by Typeclass.class_structure *)
-val type_object:
-  (Env.t -> Location.t -> Parsetree.class_structure ->
-   Typedtree.class_structure * Types.class_signature * string list) ref
-val type_package:
-  (Env.t -> Parsetree.module_expr -> Path.t -> Longident.t list ->
-  type_expr list -> Typedtree.module_expr * type_expr list) ref
+val type_module : (Env.t -> Parsetree.module_expr -> Typedtree.module_expr) ref
 
-val create_package_type : Location.t -> Env.t ->
+(* Forward declaration, to be filled in by Typemod.type_open *)
+val type_open :
+  (override_flag -> Env.t -> Location.t -> Longident.t loc -> Path.t * Env.t)
+  ref
+
+(* Forward declaration, to be filled in by Typeclass.class_structure *)
+val type_object :
+  (Env.t ->
+  Location.t ->
+  Parsetree.class_structure ->
+  Typedtree.class_structure * Types.class_signature * string list)
+  ref
+
+val type_package :
+  (Env.t ->
+  Parsetree.module_expr ->
+  Path.t ->
+  Longident.t list ->
+  type_expr list ->
+  Typedtree.module_expr * type_expr list)
+  ref
+
+val create_package_type :
+  Location.t ->
+  Env.t ->
   Longident.t * (Longident.t * Parsetree.core_type) list ->
   Path.t * (Longident.t * Typedtree.core_type) list * Types.type_expr
 
-val constant: Parsetree.constant -> (Asttypes.constant, error) result
+val constant : Parsetree.constant -> (Asttypes.constant, error) result

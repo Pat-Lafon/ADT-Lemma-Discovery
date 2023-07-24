@@ -30,7 +30,7 @@ module Int = struct
   include Int_base
 
   let rec zero_to_n n =
-    if n < 0 then Set.empty else Set.add n (zero_to_n (n-1))
+    if n < 0 then Set.empty else Set.add n (zero_to_n (n - 1))
 end
 
 module Float = struct

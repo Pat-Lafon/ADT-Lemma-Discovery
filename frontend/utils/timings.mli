@@ -16,12 +16,7 @@
 (** Compiler performance recording *)
 
 type file = string
-
-type source_provenance =
-  | File of file
-  | Pack of string
-  | Startup
-  | Toplevel
+type source_provenance = File of file | Pack of string | Startup | Toplevel
 
 type compiler_pass =
   | All

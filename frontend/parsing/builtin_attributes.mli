@@ -25,23 +25,19 @@
    ocaml.deprecated_mutable
 *)
 
+val check_deprecated : Location.t -> Parsetree.attributes -> string -> unit
+val deprecated_of_attrs : Parsetree.attributes -> string option
+val deprecated_of_sig : Parsetree.signature -> string option
+val deprecated_of_str : Parsetree.structure -> string option
 
-val check_deprecated: Location.t -> Parsetree.attributes -> string -> unit
-val deprecated_of_attrs: Parsetree.attributes -> string option
-val deprecated_of_sig: Parsetree.signature -> string option
-val deprecated_of_str: Parsetree.structure -> string option
+val check_deprecated_mutable :
+  Location.t -> Parsetree.attributes -> string -> unit
 
-val check_deprecated_mutable:
-    Location.t -> Parsetree.attributes -> string -> unit
-
-val error_of_extension: Parsetree.extension -> Location.error
-
-val warning_enter_scope: unit -> unit
-val warning_leave_scope: unit -> unit
-val warning_attribute: Parsetree.attributes -> unit
-val with_warning_attribute: Parsetree.attributes -> (unit -> 'a) -> 'a
-
-val emit_external_warnings: Ast_iterator.iterator
-
-val warn_on_literal_pattern: Parsetree.attributes -> bool
-val explicit_arity: Parsetree.attributes -> bool
+val error_of_extension : Parsetree.extension -> Location.error
+val warning_enter_scope : unit -> unit
+val warning_leave_scope : unit -> unit
+val warning_attribute : Parsetree.attributes -> unit
+val with_warning_attribute : Parsetree.attributes -> (unit -> 'a) -> 'a
+val emit_external_warnings : Ast_iterator.iterator
+val warn_on_literal_pattern : Parsetree.attributes -> bool
+val explicit_arity : Parsetree.attributes -> bool
