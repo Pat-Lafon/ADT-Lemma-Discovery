@@ -48,6 +48,13 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
     [
       { name = "=="; num_dt = 0; num_int = 2; permu = false; dttp = T.Int };
       {
+        name = "list_length";
+        num_dt = 1;
+        num_int = 1;
+        permu = false;
+        dttp = T.IntList;
+      };
+      {
         name = "list_member";
         num_dt = 1;
         num_int = 1;
@@ -283,6 +290,7 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
   (* desugared *)
   let raw_preds_info =
     [
+      { raw_name = "len"; raw_num_args = 2 };
       { raw_name = "member"; raw_num_args = 2 };
       { raw_name = "head"; raw_num_args = 2 };
       { raw_name = "last"; raw_num_args = 2 };
@@ -307,6 +315,7 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
 
   let layout_simple name =
     match name with
+    | "list_length" -> "len"
     | "list_member" -> "mem"
     | "list_head" -> "hd"
     | "list_order" -> "ord"
@@ -369,7 +378,7 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
             "tree_right";
             "tree_parallel";
           ]
-      | T.IntList -> [ "list_head"; "list_member"; "list_order" ]
+      | T.IntList -> [ "list_head"; "list_member"; "list_order"; "list_length" ]
       | _ -> []
     in
     List.map find_pred_info_by_name pres
@@ -393,6 +402,11 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
         | LabeledTree.Leaf -> false
         | LabeledTree.Node (_, root, _, _) -> root == e)
     | _ -> raise @@ InterExn "head_apply"
+
+  let length_apply (dt : V.t) (e : V.t) =
+    match (dt, e) with
+    | V.L l, V.I e -> List.length l == e
+    | _ -> raise @@ InterExn "length_apply"
 
   let member_apply (dt : V.t) (e : V.t) =
     match (dt, e) with
@@ -478,6 +492,7 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
     | "list_member" | "tree_member" | "treei_member" | "treeb_member" ->
         ("member", [])
     | "list_head" | "tree_head" | "treei_head" | "treeb_head" -> ("head", [])
+    | "list_length" -> ("length", [])
     | "list_last" -> ("last", [])
     | "list_next" -> ("next", [])
     | "tree_node" | "treei_node" | "treeb_node" -> ("node", [])
@@ -498,6 +513,7 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
 
   let apply_ ((pred, dt, args) : t * V.t * V.t list) : bool =
     match (pred, args) with
+    | "length", [ arg ] -> length_apply dt arg
     | "member", [ arg ] -> member_apply dt arg
     | "head", [ arg ] -> head_apply dt arg
     | "last", [ arg ] -> last_apply dt arg
@@ -520,6 +536,7 @@ module Predicate (V : Value.Value) : Predicate with type V.t = V.t = struct
   let fixed_dt_truth_tab pred dt =
     let forallu = V.flatten_forall dt in
     match (dt, pred) with
+    | _, "list_length" -> List.map (fun i -> [ i ]) forallu
     | _, "list_head" -> List.map (fun i -> [ i ]) forallu
     | _, "list_member" -> List.map (fun i -> [ i ]) forallu
     | V.L l, "list_order" ->

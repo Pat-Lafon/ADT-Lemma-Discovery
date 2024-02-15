@@ -1,4 +1,4 @@
 (library
  (name tp)
-  (package my_project)
+ (package my_project)
  (libraries utils yojson))

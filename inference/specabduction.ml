@@ -180,7 +180,7 @@ module SpecAbduction = struct
               Hashtbl.add env.fvtab fv MultiPos)
         fvs
     in
-    let _ = printf "sampling [%s] len(fvs) = %i\n" hole.name !counter in
+    let _ = eprintf "sampling [%s] len(fvs) = %i\n" hole.name !counter in
     (c, List.length fvs)
 
   let gather_neg_fvec_to_tab ctx hole env applied_args qvrange model query =
@@ -245,7 +245,7 @@ module SpecAbduction = struct
   let init_spec_env hole preds numX =
     let qv = name_qv numX in
     let fset = F.make_set_from_preds_max preds hole.args qv in
-    let _ = printf "init-set:%s\n" (F.layout_set fset) in
+    let _ = eprintf "init-set:%s\n" (F.layout_set fset) in
     let fvtab = Hashtbl.create 10000 in
     let abduciable = ([], Epr.Not Epr.True) in
     { dt = D.F; qv; fset; fvtab; abduciable }
@@ -331,12 +331,12 @@ module SpecAbduction = struct
             gather_neg_fvec_to_tab ctx hole spec_env applied_args qvrange model
               query
           in
-          let _ = printf "[%s] neg_num:%i\n" hole.name neg_num in
+          let _ = eprintf "[%s] neg_num:%i\n" hole.name neg_num in
           let _ = total_neg_num := !total_neg_num + neg_num in
           ())
         flow.Env.applied_args_map
     in
-    let _ = printf "total_neg_num:%i\n" !total_neg_num in
+    let _ = eprintf "total_neg_num:%i\n" !total_neg_num in
     let _ =
       stat_once.Env.num_fv_of_cex :=
         !(stat_once.Env.num_fv_of_cex) + !total_neg_num
@@ -369,7 +369,7 @@ module SpecAbduction = struct
   let is_real_cex = function RealCex _ -> true | _ -> false
 
   let model_to_instance ctx vc model version =
-    let _ = printf "%s\n" (Model.to_string model) in
+    let _ = eprintf "%s\n" (Model.to_string model) in
     let qvrange = S.Z3aux.get_preds_interp model version in
     let handle_input (tp, name) pred =
       let dtse = SE.from_tpedvar (tp, name) in
@@ -391,7 +391,9 @@ module SpecAbduction = struct
                if b then e else Epr.Not e)
              atoms)
       in
-      let _ = printf "constr:%s\n" (Epr.pretty_layout_epr constr) in
+      let _ =
+        eprintf "constr %s %s:%s\n" pred name (Epr.pretty_layout_epr constr)
+      in
       constr
     in
     let handle_input x = Epr.And (List.map (handle_input x) vc.Env.preds) in
@@ -469,13 +471,13 @@ module SpecAbduction = struct
       | None -> Gathered
       | Some pre ->
           (* let _ = printf "smt_query\n%s\n" (Expr.to_string smt_query) in
-           * let _ = printf "model:\n%s\n" (Model.to_string model) in
-           * let _ = printf "flow:\n%s\n" (Ast.vc_layout flow.Env.pre_flow) in
-           * let _ = model_to_instance ctx env.vc model version in
-           * let _ = raise @@ InterExn "inplace_verify_and_gather_fv end" in *)
+             let _ = printf "model:\n%s\n" (Model.to_string model) in
+             let _ = printf "flow:\n%s\n" (Ast.vc_layout flow.Env.pre_flow) in
+             let _ = model_to_instance ctx env.vc model version in
+             let _ = raise @@ InterExn "inplace_verify_and_gather_fv end" in *)
           let ms = model_to_instance ctx env.vc model version in
           if List.length ms == 0 then (
-            printf "cannot gather fv in ast:%s\n" (Ast.vc_layout pre);
+            eprintf "cannot gather fv in ast:%s\n" (Ast.vc_layout pre);
             CannotGather)
           else RealCex ms
     in
@@ -527,7 +529,7 @@ module SpecAbduction = struct
     | PRFFinalEnv of multi_spec_env
 
   let refinement_loop ctx env cstat_once =
-    let _ = printf "refinement_loop\n" in
+    let _ = eprintf "refinement_loop\n" in
     let rec neg_refine_loop env =
       (* let _ = printf "neg loop\n" in *)
       let _ = loop_counter := !loop_counter + 1 in
@@ -605,12 +607,27 @@ module SpecAbduction = struct
   let make_single_abd_env vc_env spec_env hole preds uniform_qv_num =
     let qv = name_qv uniform_qv_num in
     let fset = F.make_set_from_preds_max preds hole.args qv in
+
+    let _ =
+      Printf.eprintf "qv is %s\n"
+        (qv
+        |> List.map (fun (t, name) ->
+               String.concat " " [ "{"; LH.T.layout t; ":"; name; "}" ])
+        |> String.concat " ")
+    in
+    let _ =
+      Printf.eprintf "Spec_env is %s\n"
+        (spec_env.qv
+        |> List.map (fun (t, name) ->
+               String.concat " " [ "{"; LH.T.layout t; ":"; name; "}" ])
+        |> String.concat " ")
+    in
     let _ =
       if List.length spec_env.qv > List.length qv then
-        raise @@ InterExn "not impelemented make_single_abd_env"
+        raise @@ InterExn "not implemented make_single_abd_env"
       else ()
     in
-    let _ = Printf.printf "|Fset| = %i\n" (List.length fset) in
+    let _ = Printf.eprintf "|Fset| = %i\n" (List.length fset) in
     let args, (_, body) =
       StrMap.find "miss current single abd" vc_env.Env.spectable hole.name
     in
@@ -683,18 +700,18 @@ module SpecAbduction = struct
     let rec search_hyp numX =
       if numX >= max_qv then
         let _ = Env.save_consistent_stat benchname cstat in
-        (* let _ = Printf.printf "Cannot find consistent solutoin. The client code is wrong but cannot find concrete Cex.\n" in *)
+        let _ =
+          Printf.printf
+            "Cannot find consistent solution. The client code is wrong but \
+             cannot find concrete Cex.\n"
+        in
         CRCex []
       else
-        (* let _ = if numX >= max_qv then
-         *     let _ = Env.save_consistent_stat benchname cstat in
-         *     raise @@ InterExn "Cannot find consistent solutoin. The client code is wrong but cannot find concrete Cex."
-         *   else () in *)
         let env = init_env mii pres spectable preds numX holel in
         let _ =
           StrMap.iter
             (fun name env ->
-              printf "[%s] space: 2^%i = %i\n" name (List.length env.fset)
+              eprintf "[%s] space: 2^%i = %i\n" name (List.length env.fset)
                 (pow 2 (List.length env.fset)))
             env.spec_envs
         in
@@ -1099,7 +1116,7 @@ module SpecAbduction = struct
               Single_abd.infer ctx benchname total_env single_env time_bound)
         in
         let _ =
-          printf "time: single: %s: %fs\n" single_env.Env.hole.name delta_time
+          eprintf "time: single: %s: %fs\n" single_env.Env.hole.name delta_time
         in
         match single_result with
         | Env.AlreadyMaxed single_env' ->
@@ -1284,22 +1301,22 @@ module SpecAbduction = struct
         pres
     in
     let _ =
-      List.iter (fun pre -> printf "[pre]\n%s\n" (Ast.vc_layout pre)) pres
+      List.iter (fun pre -> eprintf "[pre]\n%s\n" (Ast.vc_layout pre)) pres
     in
     (* let _ = Ast.print_spectable spectable in *)
     let c = List.fold_left (fun c pre -> c + Ast.count_apps pre names) 0 pres in
-    let _ = printf "#R:\n%i\n" c in
+    let _ = eprintf "#R:\n%i\n" c in
     (* let _ = raise @@ InterExn "end" in *)
     let env =
       consistent_solution ctx benchname mii pres spectable holel preds startX
     in
     match env with
     | CRCex ms ->
-        let _ = printf "CEX:\n" in
+        let _ = eprintf "CEX:\n" in
         let _ =
           List.iter
             (fun m ->
-              printf "%s\n"
+              eprintf "%s\n"
                 (List.to_string
                    (fun (name, value) ->
                      sprintf "%s -> %s" name (V.layout value))
@@ -1311,7 +1328,7 @@ module SpecAbduction = struct
         let _ =
           StrMap.iter
             (fun name env ->
-              printf "[%s] space: 2^%i = %i\n" name (List.length env.fset)
+              eprintf "[%s] space: 2^%i = %i\n" name (List.length env.fset)
                 (pow 2 (List.length env.fset)))
             env.spec_envs
         in
@@ -1319,6 +1336,7 @@ module SpecAbduction = struct
           save_result (benchname ^ "_consistent.json") preds names env.vc
         in
         (* let _ = raise @@ InterExn "end" in *)
+        eprintf "Names %s\n" (String.concat " " names);
         let single_envs =
           List.map
             (fun specname ->

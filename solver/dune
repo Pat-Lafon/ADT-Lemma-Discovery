@@ -1,4 +1,4 @@
 (library
  (name solver)
-  (package my_project)
+ (package my_project)
  (libraries utils z3 tp))

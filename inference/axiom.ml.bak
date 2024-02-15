@@ -192,7 +192,7 @@ module AxiomSyn (D: Dtree.Dtree) = struct
     interval
 
   let get_preds_const ctx model =
-    (* let _ = printf "%s\n" (Z3.Model.to_string model) in *)
+    (* let _ = eprintf "%s\n" (Z3.Model.to_string model) in *)
     let funcs = Model.get_func_decls model in
     let get func =
       match Model.get_func_interp model func with

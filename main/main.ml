@@ -128,12 +128,12 @@ let tpedvar_to_coqstr (tp, name) =
   in
   sprintf "(%s:%s) " name tp_coqstr
 
-type coqresult = Consistent | BoundMaximal | OracleMaximal
+(* type coqresult = Consistent | BoundMaximal | OracleMaximal *)
 
-let layout_coqresult = function
-  | Consistent -> "consistent"
-  | BoundMaximal -> "bound"
-  | OracleMaximal -> "oracle"
+(* let layout_coqresult = function
+   | Consistent -> "consistent"
+   | BoundMaximal -> "bound"
+   | OracleMaximal -> "oracle" *)
 
 let spec_to_coq_string funcname subtasknum spec =
   let args, (qv, body) = spec in

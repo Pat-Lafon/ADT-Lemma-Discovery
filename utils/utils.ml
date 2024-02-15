@@ -13,7 +13,7 @@ module IntMap = Map.Make (struct
 end)
 
 module StrMap = struct
-  include Map.Make (String)
+  include Map.Make (String) [@@deriving yojson]
 
   let find info m k =
     match find_opt k m with None -> raise @@ InterExn info | Some v -> v

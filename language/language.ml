@@ -62,6 +62,7 @@ module Helper = struct
   let tree_member l u = E.Atom (SE.Op (T.Bool, "tree_member", [ l; u ]))
   let treei_member l u = E.Atom (SE.Op (T.Bool, "treei_member", [ l; u ]))
   let treeb_member l u = E.Atom (SE.Op (T.Bool, "treeb_member", [ l; u ]))
+  let list_length l u = E.Atom (SE.Op (T.Bool, "list_length", [ l; u ]))
   let list_head l u = E.Atom (SE.Op (T.Bool, "list_head", [ l; u ]))
   let tree_once l u = E.Atom (SE.Op (T.Bool, "tree_once", [ l; u ]))
   let tree_head l u = E.Atom (SE.Op (T.Bool, "tree_head", [ l; u ]))

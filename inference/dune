@@ -1,4 +1,6 @@
 (library
  (name inference)
-  (package my_project)
+ (package my_project)
+ (preprocess
+  (pps ppx_deriving_yojson))
  (libraries utils pred language ml solver qcheck core))

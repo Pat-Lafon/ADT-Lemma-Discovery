@@ -344,6 +344,7 @@ module TenvEngine = struct
     | T.IntTree, "mem" -> "tree_member"
     | T.IntTreeI, "mem" -> "treei_member"
     | T.IntTreeB, "mem" -> "treeb_member"
+    | T.IntList, "len" -> "list_length"
     | T.IntList, "hd" -> "list_head"
     | T.IntList, "ord" -> "list_order"
     | T.IntList, "once" -> "list_once"

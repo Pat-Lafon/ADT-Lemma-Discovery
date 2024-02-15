@@ -1,4 +1,6 @@
 (library
  (name utils)
  (package my_project)
+ (preprocess
+  (pps ppx_deriving_yojson))
  (libraries yojson core core_unix))

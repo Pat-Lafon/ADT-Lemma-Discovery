@@ -18,6 +18,7 @@ module type AstTree = sig
   val vc_layout : t -> string
   val layout_spec : spec -> string
   val print_spectable : spec Utils.StrMap.t -> unit
+  val eprint_spectable : spec Utils.StrMap.t -> unit
   val layout_spec_entry : string -> spec -> string
   val eq : t -> t -> bool
   val get_app_args : t -> string -> E.SE.t list list
@@ -202,10 +203,13 @@ module AstTree (E : Epr.Epr) :
     sprintf "%s(%s):=\n%s" name (StrList.to_string args)
       (E.pretty_layout_forallformula formula)
 
-  let print_spectable spectable =
+  let output_spectable (pp : ('a, out_channel, unit) format -> 'a) spectable =
     StrMap.iter
-      (fun name spec -> printf "%s\n" (layout_spec_entry_simple name spec))
+      (fun name spec -> pp "%s\n" (layout_spec_entry_simple name spec))
       spectable
+
+  let print_spectable spectable = output_spectable printf spectable
+  let eprint_spectable spectable = output_spectable eprintf spectable
 
   let eq a b =
     let rec aux a b =
